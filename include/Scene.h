@@ -10,6 +10,7 @@
 #include "Widget.hpp"
 #include "WidgetType.hpp"
 #include "WidgetFactory.hpp"
+#include "Texture.hpp"
 
 namespace gl_scene
 {
@@ -30,6 +31,17 @@ namespace gl_scene
         WidgetFactory widgetFactory_;
         std::set<Widget *> widgets_;
         std::set<Widget *> visibleWidgets_;
+
+        std::vector<Texture *> textures_;
+        GLuint colorShader_;
+        GLuint textureShader_;
+
+        GLuint gWorldLocation;
+        GLuint WVPLocation;
+        GLuint SamplerLocation;
+
+        void drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
+        void drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
 
     public:
         Scene(){};
@@ -52,11 +64,24 @@ namespace gl_scene
             cameraSpeed_ = 1.0f;
         };
 
+        friend std::ostream &operator<<(std::ostream &stream, const Scene &s)
+        {
+            std::cout << "Window size: " << s.windowWidth_ << "x" << s.windowHeight_ << std::endl;
+            std::cout << "Frustum FOV: " << s.fov_ << " near:" << s.near_ << " far:" << s.far_ << std::endl;
+
+            return stream;
+        }
+
         int windowWidth() { return windowWidth_; }
         int windowHeight() { return windowHeight_; }
         const float &fov() const { return fov_; }
         const float &far() const { return far_; }
         const float &near() const { return near_; }
+
+        GLuint &ColorShader() { return colorShader_; }
+        const GLuint &ColorShader() const { return colorShader_; }
+        GLuint &TextureShader() { return textureShader_; }
+        const GLuint &TextureShader() const { return textureShader_; }
 
         Matrix4f ProjectionMat();
         Matrix4f CameraMat();
@@ -68,16 +93,13 @@ namespace gl_scene
         void showWidget(Widget *w);
         void hideWidget(Widget *w);
 
+        void addTexture(std::string &filename);
+        Texture *Textures(int index) { return textures_[index]; }
+
         void OnKeyboard(unsigned char key);
         void KeyboardCB(unsigned char key, int mouse_x, int mouse_y);
 
-        friend std::ostream &operator<<(std::ostream &stream, const Scene &s)
-        {
-            std::cout << "Window size: " << s.windowWidth_ << "x" << s.windowHeight_ << std::endl;
-            std::cout << "Frustum FOV: " << s.fov_ << " near:" << s.near_ << " far:" << s.far_ << std::endl;
-
-            return stream;
-        }
+        void draw();
 
         ~Scene()
         {

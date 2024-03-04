@@ -1,11 +1,13 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <GL/glew.h>
 
 #include "WidgetType.hpp"
 #include "Vector3f.h"
 #include "Matrix4f.h"
+#include "Texture.hpp"
 
 namespace gl_scene
 {
@@ -14,10 +16,10 @@ namespace gl_scene
     private:
         std::string id_;
         int triangleNumber_;
+
         GLuint VAO_;
-        GLuint VertexVB0_;
-        GLuint ColorVBO_;
-        GLuint IBO_;
+        std::vector<GLuint> BufferObjects_;
+
         WidgetType type_;
         float Scale_;
         Vector3f Position_;
@@ -34,14 +36,11 @@ namespace gl_scene
         Widget(std::string id,
                int triangleNumber,
                GLuint &VAO,
-               GLuint &VertexVBO,
-               GLuint &ColorVBO,
-               GLuint &IBO,
+               std::vector<GLuint> BufferObjects,
                WidgetType WidgetType) : id_(id),
                                         triangleNumber_(triangleNumber),
                                         VAO_(VAO),
-                                        VertexVB0_(VertexVB0_),
-                                        ColorVBO_(ColorVBO),
+                                        BufferObjects_(BufferObjects),
                                         type_(WidgetType)
         {
             Scale_ = 1.0f;
@@ -85,10 +84,13 @@ namespace gl_scene
         ~Widget()
         {
             std::cout << "Cleaning up Widget" << std::endl;
+
             glDeleteVertexArrays(1, &VAO_);
-            glDeleteVertexArrays(1, &VertexVB0_);
-            glDeleteVertexArrays(1, &ColorVBO_);
-            glDeleteVertexArrays(1, &IBO_);
+            for (GLuint buf : BufferObjects_)
+            {
+                std::cout << "r\n";
+                glDeleteVertexArrays(1, &buf);
+            }
         };
     };
 } // namespace gl_scene

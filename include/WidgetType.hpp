@@ -4,7 +4,8 @@ namespace gl_scene
 {
     enum WidgetType
     {
-        CUBE,
+        CUBECOLORED,
+        CUBETEXTURED,
         PYRAMID
     };
 }

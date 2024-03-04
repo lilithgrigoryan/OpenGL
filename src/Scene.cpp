@@ -68,6 +68,55 @@ namespace gl_scene
         visibleWidgets_.erase(w);
     }
 
+    void Scene::drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
+    {
+        glUseProgram(colorShader_);
+
+        w->Rotate();
+
+        Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
+        glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &matrix.mat_[0][0]);
+        glBindVertexArray(w->VAO());
+        glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
+    }
+
+    void Scene::drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
+    {
+        glUseProgram(textureShader_);
+        glUniform1i(SamplerLocation, 0);
+
+        texture->Bind(GL_TEXTURE0);
+
+        w->Rotate();
+
+        Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
+        glUniformMatrix4fv(WVPLocation, 1, GL_TRUE, &matrix.mat_[0][0]);
+        glBindVertexArray(w->VAO());
+        glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
+    }
+
+    void Scene::draw()
+    {
+        Matrix4f CameraViewMat = this->CameraMat();
+        Matrix4f ProjectionMat = this->ProjectionMat();
+
+        for (Widget *w : visibleWidgets_)
+        {
+            if (w->isVisible())
+            {
+                Texture *texture = textures_[stol(w->id()) % textures_.size()];
+                drawWidget(w, texture, ProjectionMat, CameraViewMat);
+            }
+        }
+    }
+
+    void Scene::addTexture(std::string &filename)
+    {
+        Texture *text = new Texture(filename);
+        text->Load();
+        textures_.push_back(text);
+    }
+
     void Scene::OnKeyboard(unsigned char key)
     {
         switch (key)
@@ -128,7 +177,7 @@ namespace gl_scene
             float rangeXY = z * tanh(fov_ / 2);
             float x = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY * ((float)windowWidth_ / windowHeight_);
             float y = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY;
-            Widget *w = addWidget(CUBE, cameraPos_ + cameraFront_ * z + cameraUp_ * y + cameraFront_.Cross(cameraUp_) * x, Vector3f(0., 1, 0.), 0.0);
+            Widget *w = addWidget(CUBETEXTURED, cameraPos_ + cameraFront_ * z + cameraUp_ * y + cameraFront_.Cross(cameraUp_) * x, Vector3f(0., 1, 0.), 0.0);
             showWidget(w);
         }
         break;

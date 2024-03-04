@@ -15,6 +15,8 @@
 using namespace gl_scene;
 
 GLuint gWorldLocation;
+GLuint WVPLocation;
+GLuint SamplerLocation;
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
@@ -34,24 +36,8 @@ static void KeyboardCB(unsigned char key, int mouse_x, int mouse_y)
 void RenderDisplayCB()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Matrix4f CameraViewMat = scene.CameraMat();
-    Matrix4f ProjectionMat = scene.ProjectionMat();
 
-    static float angle = 0;
-    angle += 0.02f;
-
-    for (Widget *w : scene.VisibleWidgets())
-    {
-        if (w->isVisible())
-        {
-            w->Rotate();
-
-            Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
-            glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &matrix.mat_[0][0]);
-            glBindVertexArray(w->VAO());
-            glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
-        }
-    }
+    scene.draw();
 
     glutPostRedisplay();
     glutSwapBuffers();
@@ -91,10 +77,7 @@ static void AddShader(GLuint ShaderProgram, const char *pShaderText, GLenum Shad
     glAttachShader(ShaderProgram, ShaderObj);
 }
 
-const char *pVSFileName = "shader.vs";
-const char *pFSFileName = "shader.fs";
-
-static void CompileShaders()
+static GLuint CompileShadersColor(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
     GLuint ShaderProgram = glCreateProgram();
 
@@ -106,18 +89,19 @@ static void CompileShaders()
 
     std::string vs, fs;
 
-    if (!ReadFile(pVSFileName, vs))
+    if (!ReadFile(vertexShaderFilename.c_str(), vs))
     {
+        std::cout << "Unable to read shader " << vertexShaderFilename << std::endl;
+        exit(1);
+    };
+
+    if (!ReadFile(fragmentShaderFilename.c_str(), fs))
+    {
+        std::cout << "Unable to read shader " << fragmentShaderFilename << std::endl;
         exit(1);
     };
 
     AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
-
-    if (!ReadFile(pFSFileName, fs))
-    {
-        exit(1);
-    };
-
     AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
 
     GLint Success = 0;
@@ -149,7 +133,73 @@ static void CompileShaders()
         exit(1);
     }
 
-    glUseProgram(ShaderProgram);
+    return ShaderProgram;
+}
+
+static GLuint CompileShadersTexture(std::string vertexShaderFilename, std::string fragmentShaderFilename)
+{
+    GLuint ShaderProgram = glCreateProgram();
+
+    if (ShaderProgram == 0)
+    {
+        fprintf(stderr, "Error creating shader program\n");
+        exit(1);
+    }
+
+    std::string vs, fs;
+
+    if (!ReadFile(vertexShaderFilename.c_str(), vs))
+    {
+        std::cout << "Unable to read shader " << vertexShaderFilename << std::endl;
+        exit(1);
+    };
+
+    if (!ReadFile(fragmentShaderFilename.c_str(), fs))
+    {
+        std::cout << "Unable to read shader " << fragmentShaderFilename << std::endl;
+        exit(1);
+    };
+
+    AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
+    AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
+
+    GLint Success = 0;
+    GLchar ErrorLog[1024] = {0};
+
+    glLinkProgram(ShaderProgram);
+
+    glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
+    if (Success == 0)
+    {
+        glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
+        fprintf(stderr, "Error linking shader program: '%s'\n", ErrorLog);
+        exit(1);
+    }
+
+    WVPLocation = glGetUniformLocation(ShaderProgram, "gWVP");
+    if (WVPLocation == -1)
+    {
+        printf("Error getting uniform location of 'gWVP'\n");
+        exit(1);
+    }
+
+    SamplerLocation = glGetUniformLocation(ShaderProgram, "gSampler");
+    if (SamplerLocation == -1)
+    {
+        printf("Error getting uniform location of 'gSampler'\n");
+        exit(1);
+    }
+
+    glValidateProgram(ShaderProgram);
+    glGetProgramiv(ShaderProgram, GL_VALIDATE_STATUS, &Success);
+    if (!Success)
+    {
+        glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
+        fprintf(stderr, "Invalid shader program: '%s'\n", ErrorLog);
+        exit(1);
+    }
+
+    return ShaderProgram;
 }
 
 int main(int argc, char **argv)
@@ -181,7 +231,24 @@ int main(int argc, char **argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    CompileShaders();
+    std::string vertexShaderColor = "shaders/shader_color.vs";
+    std::string fragmentShaderColor = "shaders/shader_color.fs";
+    GLuint64 colorShaderProgram = CompileShadersColor(vertexShaderColor, fragmentShaderColor);
+    scene.ColorShader() = colorShaderProgram;
+
+    std::string vertexShaderTexture = "shaders/shader_texture.vs";
+    std::string fragmentShaderTexture = "shaders/shader_texture.fs";
+    GLuint64 textureShaderProgram = CompileShadersTexture(vertexShaderTexture, fragmentShaderTexture);
+    scene.TextureShader() = textureShaderProgram;
+
+    std::string tex1 = "resources/GlassTexture.jpg";
+    std::string tex2 = "resources/MetallicTexture.jpg";
+    std::string tex3 = "resources/WoodenTexture.jpg";
+    std::string tex4 = "resources/StoneTexture.jpg";
+    scene.addTexture(tex1);
+    scene.addTexture(tex2);
+    scene.addTexture(tex3);
+    scene.addTexture(tex4);
 
     glutDisplayFunc(RenderDisplayCB);
     glutSpecialFunc(SpecialKeyboardCB);
