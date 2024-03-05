@@ -43,7 +43,7 @@ namespace gl_scene
                                         BufferObjects_(BufferObjects),
                                         type_(WidgetType)
         {
-            Scale_ = 1.0f;
+                        Scale_ = 1.0f;
             Position_ = Vector3f(0.0f, 0.0f, 0.0f);
             RotationAxis_ = Vector3f(0.0f, 1.0f, 0.0f),
             RotationSpeed_ = 0.02f;
@@ -54,6 +54,7 @@ namespace gl_scene
         const std::string &id() const { return id_; }
 
         const GLuint &VAO() const { return VAO_; }
+        std::vector<GLuint> &BufferObjects() { return BufferObjects_; }
         const int &TrianglesNumber() const { return triangleNumber_; }
 
         float &Scale() { return Scale_; }
@@ -77,9 +78,9 @@ namespace gl_scene
         Matrix4f TransformationMat() const;
         void Rotate();
 
-        friend bool operator<(const Widget &lhs, const Widget &rhs) { return rhs.id() < lhs.id(); }
-        friend bool operator>(const Widget &lhs, const Widget &rhs) { return rhs.id() > lhs.id(); }
-        friend bool operator==(const Widget &lhs, const Widget &rhs) { return rhs.id() == lhs.id(); }
+        friend bool operator<(const Widget &lhs, const Widget &rhs) { return rhs.VAO() < lhs.VAO(); }
+        friend bool operator>(const Widget &lhs, const Widget &rhs) { return rhs.VAO() > lhs.VAO(); }
+        friend bool operator==(const Widget &lhs, const Widget &rhs) { return rhs.VAO() == lhs.VAO(); }
 
         ~Widget()
         {
@@ -87,10 +88,7 @@ namespace gl_scene
 
             glDeleteVertexArrays(1, &VAO_);
             for (GLuint buf : BufferObjects_)
-            {
-                std::cout << "r\n";
-                glDeleteVertexArrays(1, &buf);
-            }
+                glDeleteBuffers(1, &buf);
         };
     };
 } // namespace gl_scene

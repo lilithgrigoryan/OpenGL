@@ -31,7 +31,7 @@ namespace gl_scene
             vectors[6] = Vector3f(0.5f, 0.5f, 0.5f);
             vectors[7] = Vector3f(-0.5f, 0.5f, 0.5f);
 
-            glCreateBuffers(1, &VertexVBO);
+            glGenBuffers(1, &VertexVBO);
             glBindBuffer(GL_ARRAY_BUFFER, VertexVBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vectors), vectors, GL_STATIC_DRAW);
 
@@ -53,7 +53,7 @@ namespace gl_scene
             colors[6] = Vector3f(color);
             colors[7] = Vector3f(color);
 
-            glCreateBuffers(1, &ColorVBO);
+            glGenBuffers(1, &ColorVBO);
             glBindBuffer(GL_ARRAY_BUFFER, ColorVBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
@@ -113,7 +113,7 @@ namespace gl_scene
             vectors[12] = Vector3f(0.5f, 0.5f, 0.5f);   // 6'
             vectors[13] = Vector3f(0.5f, -0.5f, 0.5f);  // 2'
 
-            glCreateBuffers(1, &VertexVBO);
+            glGenBuffers(1, &VertexVBO);
             glBindBuffer(GL_ARRAY_BUFFER, VertexVBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vectors), vectors, GL_STATIC_DRAW);
 
@@ -121,7 +121,6 @@ namespace gl_scene
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
             Vector2f textures[14];
-            std::cout << 1.f / 3.f << std::endl;
             textures[0] = Vector2f(0.25f, 1.f / 3.f);
             textures[1] = Vector2f(0.0f, 1.f / 3.f);
             textures[2] = Vector2f(0.75f, 1.f / 3.f);
@@ -137,7 +136,7 @@ namespace gl_scene
             textures[12] = Vector2f(0.5f, 1.0f);      // 6'
             textures[13] = Vector2f(0.5f, 0.0f);      // 2'
 
-            glCreateBuffers(1, &TexVBO);
+            glGenBuffers(1, &TexVBO);
             glBindBuffer(GL_ARRAY_BUFFER, TexVBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(textures), textures, GL_STATIC_DRAW);
 
