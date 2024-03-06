@@ -67,10 +67,11 @@ namespace gl_scene
         w->isVisible() = false;
         visibleWidgets_.erase(w);
     }
-    void Scene::setLightningShader(AmbientLightShaderHandler *shaderHadle)
+
+    void Scene::setPhongShader(PhongShaderProgram *shaderHadle)
     {
-        ambientLightShaderHandler_ = shaderHadle;
-        ambientLightShaderHandler_->Enable();
+        phongShaderProgram_ = shaderHadle;
+        phongShaderProgram_->Enable();
     }
 
     void Scene::drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
@@ -92,9 +93,9 @@ namespace gl_scene
         w->Rotate();
 
         Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
-        ambientLightShaderHandler_->SetMaterial(*w->getMaterial());
-        ambientLightShaderHandler_->SetTransformationMatrix(matrix);
-        ambientLightShaderHandler_->SetTextureUnit(0);
+        phongShaderProgram_->SetMaterial(*w->getMaterial());
+        phongShaderProgram_->SetTransformationMatrix(matrix);
+        phongShaderProgram_->SetTextureUnit(0);
         glBindVertexArray(w->VAO());
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
     }

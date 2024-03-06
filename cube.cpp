@@ -11,7 +11,7 @@
 #include "include/util.h"
 #include "include/glmath.h"
 #include "include/Scene.h"
-#include "include/AmbientLightShaderHandler.hpp"
+#include "include/PhongShaderProgram.hpp"
 
 using namespace gl_scene;
 
@@ -43,165 +43,6 @@ void RenderDisplayCB()
     glutSwapBuffers();
 }
 
-static void AddShader(GLuint ShaderProgram, const char *pShaderText, GLenum ShaderType)
-{
-    GLuint ShaderObj = glCreateShader(ShaderType);
-
-    if (ShaderObj == 0)
-    {
-        fprintf(stderr, "Error creating shader type %d\n", ShaderType);
-        exit(1);
-    }
-
-    const GLchar *p[1];
-    p[0] = pShaderText;
-
-    GLint Lengths[1];
-    Lengths[0] = (GLint)strlen(pShaderText);
-
-    glShaderSource(ShaderObj, 1, p, Lengths);
-
-    glCompileShader(ShaderObj);
-
-    GLint success;
-    glGetShaderiv(ShaderObj, GL_COMPILE_STATUS, &success);
-
-    if (!success)
-    {
-        GLchar InfoLog[1024];
-        glGetShaderInfoLog(ShaderObj, 1024, NULL, InfoLog);
-        fprintf(stderr, "Error compiling shader type %d: '%s'\n", ShaderType, InfoLog);
-        exit(1);
-    }
-
-    glAttachShader(ShaderProgram, ShaderObj);
-}
-
-static GLuint CompileShadersColor(std::string vertexShaderFilename, std::string fragmentShaderFilename)
-{
-    GLuint ShaderProgram = glCreateProgram();
-
-    if (ShaderProgram == 0)
-    {
-        fprintf(stderr, "Error creating shader program\n");
-        exit(1);
-    }
-
-    std::string vs, fs;
-
-    if (!ReadFile(vertexShaderFilename.c_str(), vs))
-    {
-        std::cout << "Unable to read shader " << vertexShaderFilename << std::endl;
-        exit(1);
-    };
-
-    if (!ReadFile(fragmentShaderFilename.c_str(), fs))
-    {
-        std::cout << "Unable to read shader " << fragmentShaderFilename << std::endl;
-        exit(1);
-    };
-
-    AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
-    AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
-
-    GLint Success = 0;
-    GLchar ErrorLog[1024] = {0};
-
-    glLinkProgram(ShaderProgram);
-
-    glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
-    if (Success == 0)
-    {
-        glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
-        fprintf(stderr, "Error linking shader program: '%s'\n", ErrorLog);
-        exit(1);
-    }
-
-    transformationMatrix_ = glGetUniformLocation(ShaderProgram, "transform");
-    if (transformationMatrix_ == -1)
-    {
-        printf("Error getting uniform location of 'transform'\n");
-        exit(1);
-    }
-
-    glValidateProgram(ShaderProgram);
-    glGetProgramiv(ShaderProgram, GL_VALIDATE_STATUS, &Success);
-    if (!Success)
-    {
-        glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
-        fprintf(stderr, "Invalid shader program: '%s'\n", ErrorLog);
-        exit(1);
-    }
-
-    return ShaderProgram;
-}
-
-static GLuint CompileShadersTexture(std::string vertexShaderFilename, std::string fragmentShaderFilename)
-{
-    GLuint ShaderProgram = glCreateProgram();
-
-    if (ShaderProgram == 0)
-    {
-        fprintf(stderr, "Error creating shader program\n");
-        exit(1);
-    }
-
-    std::string vs, fs;
-
-    if (!ReadFile(vertexShaderFilename.c_str(), vs))
-    {
-        std::cout << "Unable to read shader " << vertexShaderFilename << std::endl;
-        exit(1);
-    };
-
-    if (!ReadFile(fragmentShaderFilename.c_str(), fs))
-    {
-        std::cout << "Unable to read shader " << fragmentShaderFilename << std::endl;
-        exit(1);
-    };
-
-    AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
-    AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
-
-    GLint Success = 0;
-    GLchar ErrorLog[1024] = {0};
-
-    glLinkProgram(ShaderProgram);
-
-    glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
-    if (Success == 0)
-    {
-        glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
-        fprintf(stderr, "Error linking shader program: '%s'\n", ErrorLog);
-        exit(1);
-    }
-
-    transformationMatrix_ = glGetUniformLocation(ShaderProgram, "gWVP");
-    if (transformationMatrix_ == -1)
-    {
-        printf("Error getting uniform location of 'gWVP'\n");
-        exit(1);
-    }
-
-    SamplerLocation = glGetUniformLocation(ShaderProgram, "gSampler");
-    if (SamplerLocation == -1)
-    {
-        printf("Error getting uniform location of 'gSampler'\n");
-        exit(1);
-    }
-
-    glValidateProgram(ShaderProgram);
-    glGetProgramiv(ShaderProgram, GL_VALIDATE_STATUS, &Success);
-    if (!Success)
-    {
-        glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
-        fprintf(stderr, "Invalid shader program: '%s'\n", ErrorLog);
-        exit(1);
-    }
-
-    return ShaderProgram;
-}
-
 int main(int argc, char **argv)
 {
     float fov = 45.0 / 180.0 * M_PI;
@@ -231,20 +72,10 @@ int main(int argc, char **argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    AmbientLightShaderHandler *shaderHandler = new AmbientLightShaderHandler("shaders/shader_ambientlight.vs", "shaders/shader_ambientlight.fs");
+    PhongShaderProgram *shaderHandler = new PhongShaderProgram("shaders/shader_ambientlight.vs", "shaders/shader_ambientlight.fs");
     BaseLight *baseLight = new BaseLight();
-    scene.setLightningShader(shaderHandler);
+    scene.setPhongShader(shaderHandler);
     shaderHandler->SetLight(*baseLight);
-
-    // std::string vertexShaderColor = "shaders/shader_color.vs";
-    // std::string fragmentShaderColor = "shaders/shader_color.fs";
-    // GLuint64 colorShaderProgram = CompileShadersColor(vertexShaderColor, fragmentShaderColor);
-    // scene.ColorShader() = colorShaderProgram;
-
-    // std::string vertexShaderTexture = "shaders/shader_texture.vs";
-    // std::string fragmentShaderTexture = "shaders/shader_texture.fs";
-    // GLuint64 textureShaderProgram = CompileShadersTexture(vertexShaderTexture, fragmentShaderTexture);
-    // scene.TextureShader() = textureShaderProgram;
 
     std::string tex1 = "resources/GlassTexture.jpg";
     std::string tex2 = "resources/MetallicTexture.jpg";

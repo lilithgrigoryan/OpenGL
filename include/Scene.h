@@ -11,7 +11,7 @@
 #include "WidgetType.hpp"
 #include "WidgetFactory.hpp"
 #include "Texture.hpp"
-#include "AmbientLightShaderHandler.hpp"
+#include "PhongShaderProgram.hpp"
 
 namespace gl_scene
 {
@@ -38,7 +38,7 @@ namespace gl_scene
         GLuint transformationMatrix_;
         GLuint SamplerLocation;
 
-        AmbientLightShaderHandler *ambientLightShaderHandler_;
+        PhongShaderProgram *phongShaderProgram_;
 
         void drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
         void drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
@@ -81,7 +81,7 @@ namespace gl_scene
         void OnKeyboard(unsigned char key);
         void KeyboardCB(unsigned char key, int mouse_x, int mouse_y);
 
-        void setLightningShader(AmbientLightShaderHandler *shaderHadle);
+        void setPhongShader(PhongShaderProgram *shaderHadle);
         void addTexture(std::string &filename);
         Texture *Textures(int index) { return textures_[index]; }
 
