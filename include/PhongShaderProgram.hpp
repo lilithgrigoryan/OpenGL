@@ -6,7 +6,7 @@
 #include "../include/Vector3f.h"
 #include "../include/Matrix4f.h"
 #include "../include/Material.hpp"
-#include "../include/BaseLight.hpp"
+#include "../include/DirectionalLight.hpp"
 
 namespace gl_scene
 {
@@ -20,13 +20,16 @@ namespace gl_scene
         GLuint samplerLocation_;
         GLuint lightColorLocation_;
         GLuint lightAmbientIntensityLocation_;
+        GLuint lightDiffuseIntensityLocation_;
+        GLuint lightDirectionLocation_;
         GLuint materialAmbientColorLocation_;
+        GLuint materialDiffuseColorLocation_;
 
     public:
         PhongShaderProgram(std::string VertexShader, std::string FragmentShader);
         void SetTransformationMatrix(const Matrix4f &WVP);
         void SetTextureUnit(unsigned int TextureUnit);
-        void SetLight(const BaseLight &Light);
+        void SetDirectionalLight(const DirectionalLight *Light, Matrix4f LocalToWorldTrasnform);
         void SetMaterial(const Material &material);
     };
 } // namespace gl_scene

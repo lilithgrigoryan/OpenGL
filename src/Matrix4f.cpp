@@ -2,11 +2,7 @@
 
 namespace gl_scene
 {
-    Matrix4f::Matrix4f(/* args */)
-    {
-    }
-
-    Matrix4f::~Matrix4f()
+    Matrix4f::Matrix4f()
     {
     }
 

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdexcept>
 #include "../include/util.h"
+#include "../include/DirectionalLight.hpp"
 
 namespace gl_scene
 {
@@ -24,9 +25,14 @@ namespace gl_scene
         {
             transformMatrixLocation_ = glGetUniformLocation(shaderProgram_, "gTransformMatrix");
             samplerLocation_ = glGetUniformLocation(shaderProgram_, "gSampler");
-            lightColorLocation_ = GetUniformLocation("gLight.Color");
-            lightAmbientIntensityLocation_ = GetUniformLocation("gLight.AmbientIntensity");
+
+            lightColorLocation_ = GetUniformLocation("gDirectionalLight.Color");
+            lightAmbientIntensityLocation_ = GetUniformLocation("gDirectionalLight.AmbientIntensity");
+            lightDiffuseIntensityLocation_ = GetUniformLocation("gDirectionalLight.DiffuseIntensity");
+            lightDirectionLocation_ = GetUniformLocation("gDirectionalLight.Direction");
+
             materialAmbientColorLocation_ = GetUniformLocation("gMaterial.AmbientColor");
+            materialAmbientColorLocation_ = GetUniformLocation("gMaterial.DiffuseColor");
         }
         catch (const std::runtime_error &e)
         {
@@ -45,15 +51,24 @@ namespace gl_scene
         glUniform1i(samplerLocation_, TextureUnit);
     }
 
-    void PhongShaderProgram::SetLight(const BaseLight &Light)
+    void PhongShaderProgram::SetDirectionalLight(const DirectionalLight *Light, Matrix4f LocalToWorldTrasnform)
     {
-        const Vector3f color = Light.Color();
+        std::cout << "Setting dir light" << std::endl;
+        const Vector3f color = Light->Color();
+        std::cout << "Color: " << color << std::endl;
+        const Vector3f direction = Light->calculateLocalDirection(LocalToWorldTrasnform);
+        std::cout << "Calculated direction" << std::endl;
         glUniform3f(lightColorLocation_, color.x, color.y, color.z);
-        glUniform1f(lightAmbientIntensityLocation_, Light.AmbientIntensity());
+        glUniform1f(lightAmbientIntensityLocation_, Light->AmbientIntensity());
+        glUniform1f(lightDiffuseIntensityLocation_, Light->DiffuseIntensity());
+        glUniform3f(lightDirectionLocation_, direction.x, direction.y, direction.z);
     }
 
     void PhongShaderProgram::SetMaterial(const Material &material)
     {
-        glUniform3f(materialAmbientColorLocation_, material.AmbientColor().x, material.AmbientColor().y, material.AmbientColor().z);
+        Vector3f ambientColor = material.AmbientColor();
+        Vector3f diffuseColor = material.DiffuseColor();
+        glUniform3f(materialAmbientColorLocation_, ambientColor.x, ambientColor.y, ambientColor.z);
+        glUniform3f(materialDiffuseColorLocation_, diffuseColor.x, diffuseColor.y, diffuseColor.z);
     }
 }

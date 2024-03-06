@@ -12,6 +12,7 @@
 #include "include/glmath.h"
 #include "include/Scene.h"
 #include "include/PhongShaderProgram.hpp"
+#include "include/DirectionalLight.hpp"
 
 using namespace gl_scene;
 
@@ -65,17 +66,17 @@ int main(int argc, char **argv)
     if (res != GLEW_OK)
         fprintf(stderr, "Failed to initialize glew");
 
-    GLclampf r = 1.0f, g = 1.0f, b = 1.0f, a = 0.0f;
+    GLclampf r = 0.0f, g = 0.0f, b = 0.0f, a = 0.0f;
     glClearColor(r, g, b, a);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    PhongShaderProgram *shaderHandler = new PhongShaderProgram("shaders/shader_ambientlight.vs", "shaders/shader_ambientlight.fs");
-    BaseLight *baseLight = new BaseLight();
+    PhongShaderProgram *shaderHandler = new PhongShaderProgram("shaders/shader_phong.vs", "shaders/shader_phong.fs");
+    DirectionalLight *light = new DirectionalLight(Vector3f(1.0f, 1.0f, 1.0f), 0.75f, 0.75f, Vector3f(0.0f, 0.0f, 1.0f));
     scene.setPhongShader(shaderHandler);
-    shaderHandler->SetLight(*baseLight);
+    scene.setDirectionalLight(light);
 
     std::string tex1 = "resources/GlassTexture.jpg";
     std::string tex2 = "resources/MetallicTexture.jpg";

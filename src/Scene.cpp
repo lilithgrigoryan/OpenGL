@@ -74,6 +74,11 @@ namespace gl_scene
         phongShaderProgram_->Enable();
     }
 
+    void Scene::setDirectionalLight(DirectionalLight *DirectionalLight)
+    {
+        light = DirectionalLight;
+    }
+
     void Scene::drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
     {
         w->Rotate();
@@ -92,11 +97,16 @@ namespace gl_scene
 
         w->Rotate();
 
-        Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
+        std::cout << "after rotate" << std::endl;
+
+        Matrix4f localToWorld = w->TransformationMat();
+        Matrix4f matrix = ProjectionMat * CameraViewMat * localToWorld;
         phongShaderProgram_->SetMaterial(*w->getMaterial());
         phongShaderProgram_->SetTransformationMatrix(matrix);
         phongShaderProgram_->SetTextureUnit(0);
+        phongShaderProgram_->SetDirectionalLight(light, localToWorld);
         glBindVertexArray(w->VAO());
+        std::cout << "before draw call" << std::endl;
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
     }
 

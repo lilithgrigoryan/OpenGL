@@ -71,6 +71,26 @@ namespace gl_scene
             return v;
         }
 
+        inline float &operator[](int i)
+        {
+            if (i == 0)
+                return x;
+            else if (i == 1)
+                return y;
+            else
+                return z;
+        }
+
+        inline const float &operator[](int i) const
+        {
+            if (i == 0)
+                return x;
+            else if (i == 1)
+                return y;
+            else
+                return z;
+        }
+
         friend std::ostream &operator<<(std::ostream &stream, const Vector3f &v)
         {
             stream << v.x << " " << v.y << " " << v.z << std::endl;

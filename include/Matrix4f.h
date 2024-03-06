@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "../include/Vector3f.h"
 
 namespace gl_scene
 {
@@ -17,7 +18,6 @@ namespace gl_scene
 
         void setZero();
         void setIdentity();
-        ~Matrix4f();
 
         friend std::ostream &operator<<(std::ostream &stream, const Matrix4f &m)
         {
@@ -43,6 +43,16 @@ namespace gl_scene
             }
 
             return m;
+        }
+
+        inline Vector3f operator[](int i)
+        {
+            return Vector3f(mat_[i][0], mat_[i][1], mat_[i][2]);
+        }
+
+        inline const Vector3f operator[](int i) const
+        {
+            return Vector3f(mat_[i][0], mat_[i][1], mat_[i][2]);
         }
 
         Matrix4f transpose() const;
