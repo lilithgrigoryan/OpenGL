@@ -11,11 +11,11 @@
 #include "include/util.h"
 #include "include/glmath.h"
 #include "include/Scene.h"
+#include "include/AmbientLightShaderHandler.hpp"
 
 using namespace gl_scene;
 
-GLuint gWorldLocation;
-GLuint WVPLocation;
+GLuint transformationMatrix_;
 GLuint SamplerLocation;
 
 #define WINDOW_WIDTH 1920
@@ -117,8 +117,8 @@ static GLuint CompileShadersColor(std::string vertexShaderFilename, std::string 
         exit(1);
     }
 
-    gWorldLocation = glGetUniformLocation(ShaderProgram, "transform");
-    if (gWorldLocation == -1)
+    transformationMatrix_ = glGetUniformLocation(ShaderProgram, "transform");
+    if (transformationMatrix_ == -1)
     {
         printf("Error getting uniform location of 'transform'\n");
         exit(1);
@@ -176,8 +176,8 @@ static GLuint CompileShadersTexture(std::string vertexShaderFilename, std::strin
         exit(1);
     }
 
-    WVPLocation = glGetUniformLocation(ShaderProgram, "gWVP");
-    if (WVPLocation == -1)
+    transformationMatrix_ = glGetUniformLocation(ShaderProgram, "gWVP");
+    if (transformationMatrix_ == -1)
     {
         printf("Error getting uniform location of 'gWVP'\n");
         exit(1);
@@ -224,22 +224,27 @@ int main(int argc, char **argv)
     if (res != GLEW_OK)
         fprintf(stderr, "Failed to initialize glew");
 
-    GLclampf r = 1.f, g = 1.f, b = 1.f, a = 0.f;
+    GLclampf r = 1.0f, g = 1.0f, b = 1.0f, a = 0.0f;
     glClearColor(r, g, b, a);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    std::string vertexShaderColor = "shaders/shader_color.vs";
-    std::string fragmentShaderColor = "shaders/shader_color.fs";
-    GLuint64 colorShaderProgram = CompileShadersColor(vertexShaderColor, fragmentShaderColor);
-    scene.ColorShader() = colorShaderProgram;
+    AmbientLightShaderHandler *shaderHandler = new AmbientLightShaderHandler("shaders/shader_ambientlight.vs", "shaders/shader_ambientlight.fs");
+    BaseLight *baseLight = new BaseLight();
+    scene.setLightningShader(shaderHandler);
+    shaderHandler->SetLight(*baseLight);
 
-    std::string vertexShaderTexture = "shaders/shader_texture.vs";
-    std::string fragmentShaderTexture = "shaders/shader_texture.fs";
-    GLuint64 textureShaderProgram = CompileShadersTexture(vertexShaderTexture, fragmentShaderTexture);
-    scene.TextureShader() = textureShaderProgram;
+    // std::string vertexShaderColor = "shaders/shader_color.vs";
+    // std::string fragmentShaderColor = "shaders/shader_color.fs";
+    // GLuint64 colorShaderProgram = CompileShadersColor(vertexShaderColor, fragmentShaderColor);
+    // scene.ColorShader() = colorShaderProgram;
+
+    // std::string vertexShaderTexture = "shaders/shader_texture.vs";
+    // std::string fragmentShaderTexture = "shaders/shader_texture.fs";
+    // GLuint64 textureShaderProgram = CompileShadersTexture(vertexShaderTexture, fragmentShaderTexture);
+    // scene.TextureShader() = textureShaderProgram;
 
     std::string tex1 = "resources/GlassTexture.jpg";
     std::string tex2 = "resources/MetallicTexture.jpg";

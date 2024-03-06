@@ -11,6 +11,7 @@
 #include "WidgetType.hpp"
 #include "WidgetFactory.hpp"
 #include "Texture.hpp"
+#include "AmbientLightShaderHandler.hpp"
 
 namespace gl_scene
 {
@@ -33,12 +34,11 @@ namespace gl_scene
         std::set<Widget *> visibleWidgets_;
 
         std::vector<Texture *> textures_;
-        GLuint colorShader_;
-        GLuint textureShader_;
 
-        GLuint gWorldLocation;
-        GLuint WVPLocation;
+        GLuint transformationMatrix_;
         GLuint SamplerLocation;
+
+        AmbientLightShaderHandler *ambientLightShaderHandler_;
 
         void drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
         void drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
@@ -78,26 +78,12 @@ namespace gl_scene
         const float &far() const { return far_; }
         const float &near() const { return near_; }
 
-        GLuint &ColorShader() { return colorShader_; }
-        const GLuint &ColorShader() const { return colorShader_; }
-        GLuint &TextureShader() { return textureShader_; }
-        const GLuint &TextureShader() const { return textureShader_; }
-
-        Matrix4f ProjectionMat();
-        Matrix4f CameraMat();
-
-        const std::set<Widget *> &VisibleWidgets() { return visibleWidgets_; };
-
-        Widget *addWidget(WidgetType widgetType, Vector3f position, Vector3f rotationAxis, float rotationAngle);
-        void removeWidget(Widget *w);
-        void showWidget(Widget *w);
-        void hideWidget(Widget *w);
-
-        void addTexture(std::string &filename);
-        Texture *Textures(int index) { return textures_[index]; }
-
         void OnKeyboard(unsigned char key);
         void KeyboardCB(unsigned char key, int mouse_x, int mouse_y);
+
+        void setLightningShader(AmbientLightShaderHandler *shaderHadle);
+        void addTexture(std::string &filename);
+        Texture *Textures(int index) { return textures_[index]; }
 
         void draw();
 
@@ -107,5 +93,14 @@ namespace gl_scene
             for (auto w : widgets_)
                 delete w;
         }
+
+    private:
+        Widget *addWidget(WidgetType widgetType, Vector3f position, Vector3f rotationAxis, float rotationAngle);
+        void removeWidget(Widget *w);
+        void showWidget(Widget *w);
+        void hideWidget(Widget *w);
+        Matrix4f ProjectionMat();
+        Matrix4f CameraMat();
+        const std::set<Widget *> &VisibleWidgets() { return visibleWidgets_; };
     };
 }

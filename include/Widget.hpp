@@ -8,6 +8,7 @@
 #include "Vector3f.h"
 #include "Matrix4f.h"
 #include "Texture.hpp"
+#include "Material.hpp"
 
 namespace gl_scene
 {
@@ -32,18 +33,22 @@ namespace gl_scene
         Matrix4f RotationMat() const;
         Matrix4f TranslationMatrix() const;
 
+        Material *Material_;
+
     public:
         Widget(std::string id,
                int triangleNumber,
                GLuint &VAO,
                std::vector<GLuint> BufferObjects,
+               Material *Material,
                WidgetType WidgetType) : id_(id),
                                         triangleNumber_(triangleNumber),
                                         VAO_(VAO),
                                         BufferObjects_(BufferObjects),
-                                        type_(WidgetType)
+                                        type_(WidgetType),
+                                        Material_(Material)
         {
-                        Scale_ = 1.0f;
+            Scale_ = 1.0f;
             Position_ = Vector3f(0.0f, 0.0f, 0.0f);
             RotationAxis_ = Vector3f(0.0f, 1.0f, 0.0f),
             RotationSpeed_ = 0.02f;
@@ -77,6 +82,8 @@ namespace gl_scene
 
         Matrix4f TransformationMat() const;
         void Rotate();
+
+        const Material *getMaterial() const { return Material_; }
 
         friend bool operator<(const Widget &lhs, const Widget &rhs) { return rhs.VAO() < lhs.VAO(); }
         friend bool operator>(const Widget &lhs, const Widget &rhs) { return rhs.VAO() > lhs.VAO(); }

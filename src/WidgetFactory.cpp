@@ -84,7 +84,8 @@ namespace gl_scene
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            return new Widget(std::to_string(id_++), 12, VAO, {ColorVBO, IBO}, widgetType);
+            Material *material = new Material();
+            return new Widget(std::to_string(id_++), 12, VAO, {ColorVBO, IBO}, material, widgetType);
         }
         break;
         case CUBETEXTURED:
@@ -167,7 +168,184 @@ namespace gl_scene
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            return new Widget(std::to_string(id_++), 12, VAO, {TexVBO, IBO}, widgetType);
+            Material *material = new Material();
+            return new Widget(std::to_string(id_++), 12, VAO, {TexVBO, IBO}, material, widgetType);
+        }
+        break;
+        case CUBEWITHNORMALS:
+        {
+            GLuint VAO;
+            GLuint VertexVBO;
+            GLuint TexVBO;
+            GLuint NormalVBO;
+            GLuint IBO;
+
+            glGenVertexArrays(1, &VAO);
+            glBindVertexArray(VAO);
+
+            Vector3f vectors[24];
+            // Down
+            vectors[0] = Vector3f(-0.5f, -0.5f, -0.5f);
+            vectors[1] = Vector3f(0.5f, -0.5f, -0.5f);
+            vectors[2] = Vector3f(0.5f, -0.5f, 0.5f);
+            vectors[3] = Vector3f(-0.5f, -0.5f, 0.5f);
+
+            // Up
+            vectors[4] = Vector3f(-0.5f, 0.5f, -0.5f);
+            vectors[5] = Vector3f(0.5f, 0.5f, -0.5f);
+            vectors[6] = Vector3f(0.5f, 0.5f, 0.5f);
+            vectors[7] = Vector3f(-0.5f, 0.5f, 0.5f);
+
+            // Left
+            vectors[8] = Vector3f(-0.5f, -0.5f, -0.5f); // 0
+            vectors[9] = Vector3f(-0.5f, -0.5f, 0.5f);  // 3
+            vectors[10] = Vector3f(-0.5f, 0.5f, 0.5f);  // 7
+            vectors[11] = Vector3f(-0.5f, 0.5f, -0.5f); // 4
+
+            // Right
+            vectors[12] = Vector3f(0.5f, -0.5f, -0.5f); // 1
+            vectors[13] = Vector3f(0.5f, 0.5f, -0.5f);  // 5
+            vectors[14] = Vector3f(0.5f, 0.5f, 0.5f);   // 6
+            vectors[15] = Vector3f(0.5f, -0.5f, 0.5f);  // 2
+
+            // Near
+            vectors[16] = Vector3f(0.5f, -0.5f, 0.5f);  // 2
+            vectors[17] = Vector3f(0.5f, 0.5f, 0.5f);   // 6
+            vectors[18] = Vector3f(-0.5f, 0.5f, 0.5f);  // 7
+            vectors[19] = Vector3f(-0.5f, -0.5f, 0.5f); // 3
+
+            // Far
+            vectors[20] = Vector3f(-0.5f, -0.5f, -0.5f); // 0
+            vectors[21] = Vector3f(-0.5f, 0.5f, -0.5f);  // 4
+            vectors[22] = Vector3f(0.5f, 0.5f, -0.5f);   // 5
+            vectors[23] = Vector3f(0.5f, -0.5f, -0.5f);  // 1
+
+            glGenBuffers(1, &VertexVBO);
+            glBindBuffer(GL_ARRAY_BUFFER, VertexVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vectors), vectors, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            Vector2f textures[24];
+            // Down
+            textures[0] = Vector2f(0.25f, 1.f / 3.f);
+            textures[1] = Vector2f(0.25f, 0.0f);
+            textures[2] = Vector2f(0.5f, 0.0f);
+            textures[3] = Vector2f(0.5f, 1.f / 3.f);
+
+            // Up
+            textures[4] = Vector2f(0.25f, 2.f / 3.f);
+            textures[5] = Vector2f(0.25f, 1.0f);
+            textures[6] = Vector2f(0.5f, 1.0f);
+            textures[7] = Vector2f(0.5f, 2.f / 3.f);
+
+            // Left
+            textures[8] = Vector2f(0.25f, 1.f / 3.f);  // 0
+            textures[9] = Vector2f(0.5f, 1.f / 3.f);   // 3
+            textures[10] = Vector2f(0.5f, 2.f / 3.f);  // 4
+            textures[11] = Vector2f(0.25f, 2.f / 3.f); // 7
+
+            // Right
+            textures[12] = Vector2f(1.f, 1.f / 3.f);   // 1
+            textures[13] = Vector2f(1.f, 2.f / 3.f);   // 5
+            textures[14] = Vector2f(0.75f, 2.f / 3.f); // 6
+            textures[15] = Vector2f(0.75f, 1.f / 3.f); // 2
+
+            // Near
+            textures[16] = Vector2f(0.75f, 1.f / 3.f); // 2
+            textures[17] = Vector2f(0.75f, 2.f / 3.f); // 6
+            textures[18] = Vector2f(0.5f, 2.f / 3.f);  // 7
+            textures[19] = Vector2f(0.5f, 1.f / 3.f);  // 3
+
+            // Far
+            textures[20] = Vector2f(0.25f, 1.f / 3.f); // 0
+            textures[21] = Vector2f(0.25f, 2.f / 3.f); // 4
+            textures[22] = Vector2f(0.0f, 2.f / 3.f);  // 5
+            textures[23] = Vector2f(0.0f, 1.f / 3.f);  // 1
+
+            glGenBuffers(1, &TexVBO);
+            glBindBuffer(GL_ARRAY_BUFFER, TexVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(textures), textures, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+            Vector3f normals[24];
+            // Down
+            normals[0] = Vector3f(0.0f, -1.0f, 0.0f);
+            normals[1] = Vector3f(0.0f, -1.0f, 0.0f);
+            normals[2] = Vector3f(0.0f, -1.0f, 0.0f);
+            normals[3] = Vector3f(0.0f, -1.0f, 0.0f);
+
+            // Up
+            normals[4] = Vector3f(0.0f, 1.0f, 0.0f);
+            normals[5] = Vector3f(0.0f, 1.0f, 0.0f);
+            normals[6] = Vector3f(0.0f, 1.0f, 0.0f);
+            normals[7] = Vector3f(0.0f, 1.0f, 0.0f);
+
+            // Left
+            normals[8] = Vector3f(-1.0f, 0.0f, 0.0f);  // 0
+            normals[9] = Vector3f(-1.0f, 0.0f, 0.0f);  // 3
+            normals[10] = Vector3f(-1.0f, 0.0f, 0.0f); // 4
+            normals[11] = Vector3f(-1.0f, 0.0f, 0.0f); // 7
+
+            // Right
+            normals[12] = Vector3f(1.0f, 0.0f, 0.0f); // 1
+            normals[13] = Vector3f(1.0f, 0.0f, 0.0f); // 5
+            normals[14] = Vector3f(1.0f, 0.0f, 0.0f); // 6
+            normals[15] = Vector3f(1.0f, 0.0f, 0.0f); // 2
+
+            // Near
+            normals[16] = Vector3f(0.0f, 0.0f, 1.0f); // 2
+            normals[17] = Vector3f(0.0f, 0.0f, 1.0f); // 6
+            normals[18] = Vector3f(0.0f, 0.0f, 1.0f); // 7
+            normals[19] = Vector3f(0.0f, 0.0f, 1.0f); // 3
+
+            // Far
+            normals[20] = Vector3f(0.0f, 0.0f, -1.0f); // 0
+            normals[21] = Vector3f(0.0f, 0.0f, -1.0f); // 4
+            normals[22] = Vector3f(0.0f, 0.0f, -1.0f); // 5
+            normals[23] = Vector3f(0.0f, 0.0f, -1.0f); // 1
+
+            glGenBuffers(1, &NormalVBO);
+            glBindBuffer(GL_ARRAY_BUFFER, NormalVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(textures), textures, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            int Indices[36] = {
+                0, 1, 2,
+                0, 2, 3,
+                20, 21, 22,
+                20, 22, 23,
+                9, 10, 11,
+                9, 11, 8,
+                16, 17, 18,
+                16, 18, 19,
+                12, 13, 14,
+                12, 14, 15,
+                7, 6, 5,
+                7, 5, 4};
+
+            glGenBuffers(1, &IBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+
+            glBindVertexArray(0);
+            glDisableVertexAttribArray(0);
+            glDisableVertexAttribArray(1);
+            glDisableVertexAttribArray(2);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+            float r = std::generate_canonical<float, 128>(rng);
+            float g = std::generate_canonical<float, 128>(rng);
+            float b = std::generate_canonical<float, 128>(rng);
+
+            Material *material = new Material(Vector3f(r, g, b));
+            return new Widget(std::to_string(id_++), 12, VAO, {TexVBO, IBO}, material, widgetType);
         }
         break;
         default:

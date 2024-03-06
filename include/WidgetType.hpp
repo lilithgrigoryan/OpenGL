@@ -6,6 +6,6 @@ namespace gl_scene
     {
         CUBECOLORED,
         CUBETEXTURED,
-        PYRAMID
+        CUBEWITHNORMALS
     };
 }

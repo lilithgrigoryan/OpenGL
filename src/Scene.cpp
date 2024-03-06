@@ -67,22 +67,24 @@ namespace gl_scene
         w->isVisible() = false;
         visibleWidgets_.erase(w);
     }
+    void Scene::setLightningShader(AmbientLightShaderHandler *shaderHadle)
+    {
+        ambientLightShaderHandler_ = shaderHadle;
+        ambientLightShaderHandler_->Enable();
+    }
 
     void Scene::drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
     {
-        glUseProgram(colorShader_);
-
         w->Rotate();
 
         Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
-        glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &matrix.mat_[0][0]);
+        glUniformMatrix4fv(transformationMatrix_, 1, GL_TRUE, &matrix.mat_[0][0]);
         glBindVertexArray(w->VAO());
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
     }
 
     void Scene::drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
     {
-        glUseProgram(textureShader_);
         glUniform1i(SamplerLocation, 0);
 
         texture->Bind(GL_TEXTURE0);
@@ -90,7 +92,9 @@ namespace gl_scene
         w->Rotate();
 
         Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
-        glUniformMatrix4fv(WVPLocation, 1, GL_TRUE, &matrix.mat_[0][0]);
+        ambientLightShaderHandler_->SetMaterial(*w->getMaterial());
+        ambientLightShaderHandler_->SetTransformationMatrix(matrix);
+        ambientLightShaderHandler_->SetTextureUnit(0);
         glBindVertexArray(w->VAO());
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
     }
@@ -151,33 +155,14 @@ namespace gl_scene
         case 'q':
         case 27: // escape key code
             exit(0);
-
-        case '1':
-        {
-            Widget *w1 = *widgets_.begin();
-            if (w1->isVisible())
-                hideWidget(w1);
-            else
-                showWidget(w1);
-        }
-        break;
-
-        case '2':
-        {
-            Widget *w2 = *(++widgets_.begin());
-            if (w2->isVisible())
-                hideWidget(w2);
-            else
-                showWidget(w2);
-        }
-        break;
+            break;
         case '+':
         {
             float z = near_ + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (far_ - near_)));
             float rangeXY = z * tanh(fov_ / 2);
             float x = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY * ((float)windowWidth_ / windowHeight_);
             float y = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY;
-            Widget *w = addWidget(CUBETEXTURED, cameraPos_ + cameraFront_ * z + cameraUp_ * y + cameraFront_.Cross(cameraUp_) * x, Vector3f(0., 1, 0.), 0.0);
+            Widget *w = addWidget(CUBEWITHNORMALS, cameraPos_ + cameraFront_ * z + cameraUp_ * y + cameraFront_.Cross(cameraUp_) * x, Vector3f(0., 1, 0.), 0.0);
             showWidget(w);
         }
         break;
