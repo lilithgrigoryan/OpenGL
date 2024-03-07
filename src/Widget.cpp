@@ -29,6 +29,6 @@ namespace gl_scene
 
     void Widget::Rotate()
     {
-        RotationAngle_ += RotationSpeed_;
+        RotationAngle_ -= RotationSpeed_;
     }
 }

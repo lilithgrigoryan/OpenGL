@@ -97,8 +97,6 @@ namespace gl_scene
 
         w->Rotate();
 
-        std::cout << "after rotate" << std::endl;
-
         Matrix4f localToWorld = w->TransformationMat();
         Matrix4f matrix = ProjectionMat * CameraViewMat * localToWorld;
         phongShaderProgram_->SetMaterial(*w->getMaterial());
@@ -106,7 +104,7 @@ namespace gl_scene
         phongShaderProgram_->SetTextureUnit(0);
         phongShaderProgram_->SetDirectionalLight(light, localToWorld);
         glBindVertexArray(w->VAO());
-        std::cout << "before draw call" << std::endl;
+
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
     }
 

@@ -47,8 +47,8 @@ void RenderDisplayCB()
 int main(int argc, char **argv)
 {
     float fov = 45.0 / 180.0 * M_PI;
-    Vector3f cameraPos(4.0f, 0.0f, 0.0f);
-    Vector3f cameraFront(-1, 0, 0);
+    Vector3f cameraPos(0.0f, 0.0f, 4.0f);
+    Vector3f cameraFront(0, 0, -1);
     Vector3f cameraUp(0, 1, 0);
     scene = Scene(WINDOW_WIDTH, WINDOW_HEIGHT, 45.0 / 180.0 * M_PI, 3, 20, cameraPos, cameraFront, cameraUp);
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     glDepthFunc(GL_LESS);
 
     PhongShaderProgram *shaderHandler = new PhongShaderProgram("shaders/shader_phong.vs", "shaders/shader_phong.fs");
-    DirectionalLight *light = new DirectionalLight(Vector3f(1.0f, 1.0f, 1.0f), 0.75f, 0.75f, Vector3f(0.0f, 0.0f, 1.0f));
+    DirectionalLight *light = new DirectionalLight(Vector3f(1.0f, 1.0f, 1.0f), 0.75f, 0.75f, Vector3f(0.0f, 0.0f, -1.0f));
     scene.setPhongShader(shaderHandler);
     scene.setDirectionalLight(light);
 

@@ -244,8 +244,8 @@ namespace gl_scene
             // Left
             textures[8] = Vector2f(0.25f, 1.f / 3.f);  // 0
             textures[9] = Vector2f(0.5f, 1.f / 3.f);   // 3
-            textures[10] = Vector2f(0.5f, 2.f / 3.f);  // 4
-            textures[11] = Vector2f(0.25f, 2.f / 3.f); // 7
+            textures[10] = Vector2f(0.5f, 2.f / 3.f);  // 7
+            textures[11] = Vector2f(0.25f, 2.f / 3.f); // 4
 
             // Right
             textures[12] = Vector2f(1.f, 1.f / 3.f);   // 1
@@ -273,15 +273,15 @@ namespace gl_scene
             glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
             Vector3f normals[24];
-            Vector3f normal0 = Vector3f(-1.0f / sqrt(3), -1.0f / sqrt(3), -1.0f / sqrt(3));
-            Vector3f normal1 = Vector3f(+1.0f / sqrt(3), -1.0f / sqrt(3), -1.0f / sqrt(3));
-            Vector3f normal2 = Vector3f(+1.0f / sqrt(3), -1.0f / sqrt(3), +1.0f / sqrt(3));
-            Vector3f normal3 = Vector3f(-1.0f / sqrt(3), -1.0f / sqrt(3), +1.0f / sqrt(3));
+            Vector3f normal0 = Vector3f(-1.0f, -1.0f, -1.0f) * (1.0f / sqrt(3));
+            Vector3f normal1 = Vector3f(+1.0f, -1.0f, -1.0f) * (1.0f / sqrt(3));
+            Vector3f normal2 = Vector3f(+1.0f, -1.0f, +1.0f) * (1.0f / sqrt(3));
+            Vector3f normal3 = Vector3f(-1.0f, -1.0f, +1.0f) * (1.0f / sqrt(3));
 
-            Vector3f normal4 = Vector3f(-1.0f / sqrt(3), +1.0f / sqrt(3), -1.0f / sqrt(3));
-            Vector3f normal5 = Vector3f(+1.0f / sqrt(3), +1.0f / sqrt(3), -1.0f / sqrt(3));
-            Vector3f normal6 = Vector3f(+1.0f / sqrt(3), +1.0f / sqrt(3), +1.0f / sqrt(3));
-            Vector3f normal7 = Vector3f(-1.0f / sqrt(3), +1.0f / sqrt(3), +1.0f / sqrt(3));
+            Vector3f normal4 = Vector3f(-1.0f, +1.0f, -1.0f) * (1.0f / sqrt(3));
+            Vector3f normal5 = Vector3f(+1.0f, +1.0f, -1.0f) * (1.0f / sqrt(3));
+            Vector3f normal6 = Vector3f(+1.0f, +1.0f, +1.0f) * (1.0f / sqrt(3));
+            Vector3f normal7 = Vector3f(-1.0f, +1.0f, +1.0f) * (1.0f / sqrt(3));
             // Down
             normals[0] = normal0; // Vector3f(0.0f, -1.0f, 0.0f);
             normals[1] = normal1; // Vector3f(0.0f, -1.0f, 0.0f);
@@ -297,8 +297,8 @@ namespace gl_scene
             // Left
             normals[8] = normal0;  // Vector3f(-1.0f, 0.0f, 0.0f);  // 0
             normals[9] = normal3;  // Vector3f(-1.0f, 0.0f, 0.0f);  // 3
-            normals[10] = normal4; // Vector3f(-1.0f, 0.0f, 0.0f); // 4
-            normals[11] = normal7; // Vector3f(-1.0f, 0.0f, 0.0f); // 7
+            normals[10] = normal7; // Vector3f(-1.0f, 0.0f, 0.0f); // 7
+            normals[11] = normal4; // Vector3f(-1.0f, 0.0f, 0.0f); // 4
 
             // Right
             normals[12] = normal1; // Vector3f(1.0f, 0.0f, 0.0f); // 1
@@ -354,7 +354,7 @@ namespace gl_scene
             float g = std::generate_canonical<float, 128>(rng);
             float b = std::generate_canonical<float, 128>(rng);
 
-            Material *material = new Material(Vector3f(r, g, b));
+            Material *material = new Material(Vector3f(r, g, b), Vector3f(r, g, b));
             return new Widget(std::to_string(id_++), 12, VAO, {TexVBO, NormalVBO, IBO}, material, widgetType);
         }
         break;

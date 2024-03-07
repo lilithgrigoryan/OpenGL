@@ -32,7 +32,7 @@ namespace gl_scene
             lightDirectionLocation_ = GetUniformLocation("gDirectionalLight.Direction");
 
             materialAmbientColorLocation_ = GetUniformLocation("gMaterial.AmbientColor");
-            materialAmbientColorLocation_ = GetUniformLocation("gMaterial.DiffuseColor");
+            materialDiffuseColorLocation_ = GetUniformLocation("gMaterial.DiffuseColor");
         }
         catch (const std::runtime_error &e)
         {
@@ -53,11 +53,8 @@ namespace gl_scene
 
     void PhongShaderProgram::SetDirectionalLight(const DirectionalLight *Light, Matrix4f LocalToWorldTrasnform)
     {
-        std::cout << "Setting dir light" << std::endl;
         const Vector3f color = Light->Color();
-        std::cout << "Color: " << color << std::endl;
         const Vector3f direction = Light->calculateLocalDirection(LocalToWorldTrasnform);
-        std::cout << "Calculated direction" << std::endl;
         glUniform3f(lightColorLocation_, color.x, color.y, color.z);
         glUniform1f(lightAmbientIntensityLocation_, Light->AmbientIntensity());
         glUniform1f(lightDiffuseIntensityLocation_, Light->DiffuseIntensity());
