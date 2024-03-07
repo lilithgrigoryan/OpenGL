@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include "../include/util.h"
 #include "../include/DirectionalLight.hpp"
+#include "../include/Matrix3f.hpp"
+#include "../include/glmath.h"
 
 namespace gl_scene
 {
@@ -27,12 +29,17 @@ namespace gl_scene
             samplerLocation_ = glGetUniformLocation(shaderProgram_, "gSampler");
 
             lightColorLocation_ = GetUniformLocation("gDirectionalLight.Color");
+            lightDirectionLocation_ = GetUniformLocation("gDirectionalLight.Direction");
             lightAmbientIntensityLocation_ = GetUniformLocation("gDirectionalLight.AmbientIntensity");
             lightDiffuseIntensityLocation_ = GetUniformLocation("gDirectionalLight.DiffuseIntensity");
-            lightDirectionLocation_ = GetUniformLocation("gDirectionalLight.Direction");
+            lightSpecularIntensityLocation_ = GetUniformLocation("gDirectionalLight.SpecularIntensity");
 
+            materialSpecularColorLocation_ = GetUniformLocation("gMaterial.SpecularColor");
             materialAmbientColorLocation_ = GetUniformLocation("gMaterial.AmbientColor");
             materialDiffuseColorLocation_ = GetUniformLocation("gMaterial.DiffuseColor");
+            materialSpecularPowerLocation_ = GetUniformLocation("gMaterial.SpecularExp");
+
+            cameraLocationLocation_ = GetUniformLocation("gCameraLocation");
         }
         catch (const std::runtime_error &e)
         {
@@ -51,13 +58,14 @@ namespace gl_scene
         glUniform1i(samplerLocation_, TextureUnit);
     }
 
-    void PhongShaderProgram::SetDirectionalLight(const DirectionalLight *Light, Matrix4f LocalToWorldTrasnform)
+    void PhongShaderProgram::SetDirectionalLight(const DirectionalLight *Light, Matrix4f &LocalToWorldTrasnform)
     {
         const Vector3f color = Light->Color();
         const Vector3f direction = Light->calculateLocalDirection(LocalToWorldTrasnform);
         glUniform3f(lightColorLocation_, color.x, color.y, color.z);
         glUniform1f(lightAmbientIntensityLocation_, Light->AmbientIntensity());
         glUniform1f(lightDiffuseIntensityLocation_, Light->DiffuseIntensity());
+        glUniform1f(lightSpecularIntensityLocation_, Light->SpecularIntensity());
         glUniform3f(lightDirectionLocation_, direction.x, direction.y, direction.z);
     }
 
@@ -65,7 +73,33 @@ namespace gl_scene
     {
         Vector3f ambientColor = material.AmbientColor();
         Vector3f diffuseColor = material.DiffuseColor();
+        Vector3f specularColor = material.SpecularColor();
         glUniform3f(materialAmbientColorLocation_, ambientColor.x, ambientColor.y, ambientColor.z);
         glUniform3f(materialDiffuseColorLocation_, diffuseColor.x, diffuseColor.y, diffuseColor.z);
+        glUniform3f(materialSpecularColorLocation_, specularColor.x, specularColor.y, specularColor.z);
+        glUniform1f(materialSpecularPowerLocation_, material.SpecularColorExp());
+    }
+
+    void PhongShaderProgram::SetCamera(Vector3f &CameraWorldLocation, Matrix4f &LocalToWorldTransform)
+    {
+        Vector3f localPos = calculateLocalCameraPosition(CameraWorldLocation, LocalToWorldTransform);
+        glUniform3f(cameraLocationLocation_, localPos.x, localPos.y, localPos.z);
+    }
+
+    Vector3f PhongShaderProgram::calculateLocalCameraPosition(Vector3f &CameraWorldLocation, Matrix4f &LocalToWorldTransform)
+    {
+        Matrix3f R(LocalToWorldTransform[0][0], LocalToWorldTransform[0][1], LocalToWorldTransform[0][2],
+                   LocalToWorldTransform[1][0], LocalToWorldTransform[1][1], LocalToWorldTransform[1][2],
+                   LocalToWorldTransform[2][0], LocalToWorldTransform[2][1], LocalToWorldTransform[2][2]);
+        Matrix3f RT = R.transpose();
+
+        Matrix4f Tinv4x4 = translation(CameraWorldLocation);
+        Matrix3f Tinv(Tinv4x4[0][0], Tinv4x4[0][1], Tinv4x4[0][2],
+                      Tinv4x4[1][0], Tinv4x4[1][1], Tinv4x4[1][2],
+                      Tinv4x4[2][0], Tinv4x4[2][1], Tinv4x4[2][2]);
+
+        Vector3f localLocation = RT * Tinv * CameraWorldLocation;
+
+        return localLocation;
     }
 }

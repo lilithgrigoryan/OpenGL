@@ -70,11 +70,12 @@ int main(int argc, char **argv)
     glClearColor(r, g, b, a);
 
     glEnable(GL_CULL_FACE);
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
     PhongShaderProgram *shaderHandler = new PhongShaderProgram("shaders/shader_phong.vs", "shaders/shader_phong.fs");
-    DirectionalLight *light = new DirectionalLight(Vector3f(1.0f, 1.0f, 1.0f), 0.75f, 0.75f, Vector3f(0.0f, 0.0f, -1.0f));
+    DirectionalLight *light = new DirectionalLight(Vector3f(1.0f, 1.0f, 1.0f), 0.75f, 0.75f, 0.75, Vector3f(0.0f, 0.0f, -1.0f));
     scene.setPhongShader(shaderHandler);
     scene.setDirectionalLight(light);
 

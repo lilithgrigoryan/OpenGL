@@ -103,6 +103,7 @@ namespace gl_scene
         phongShaderProgram_->SetTransformationMatrix(matrix);
         phongShaderProgram_->SetTextureUnit(0);
         phongShaderProgram_->SetDirectionalLight(light, localToWorld);
+        phongShaderProgram_->SetCamera(cameraPos_, localToWorld);
         glBindVertexArray(w->VAO());
 
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);

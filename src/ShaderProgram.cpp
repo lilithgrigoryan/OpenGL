@@ -73,7 +73,7 @@ namespace gl_scene
     {
         GLint uniformLocation = glGetUniformLocation(shaderProgram_, uniformName);
         if (uniformLocation == -1)
-            throw std::runtime_error(std::string("Error getting uniform location of") + uniformName + '\n');
+            throw std::runtime_error(std::string("Error getting uniform location of ") + uniformName + '\n');
 
         return uniformLocation;
     }
