@@ -175,8 +175,8 @@ namespace gl_scene
         {
         case GLUT_KEY_UP:
         {
-            Vector3f dpos = (cameraUp_ * cameraSpeed_);
-            dpos.y = 0;
+            Vector3f ey = Vector3f(0.0f, 1.0f, 0.0f);
+            Vector3f dpos = ey.Cross(cameraFront_.Cross(ey)) * cameraSpeed_;
             cameraPos_ += dpos;
             playerWidget_->Position() += dpos;
 
@@ -185,8 +185,8 @@ namespace gl_scene
         break;
         case GLUT_KEY_DOWN:
         {
-            Vector3f dpos = (cameraUp_ * cameraSpeed_);
-            dpos.y = 0;
+            Vector3f ey = Vector3f(0.0f, 1.0f, 0.0f);
+            Vector3f dpos = ey.Cross(cameraFront_.Cross(ey)) * cameraSpeed_;
             cameraPos_ -= dpos;
             playerWidget_->Position() -= dpos;
 
@@ -195,9 +195,8 @@ namespace gl_scene
         break;
         case GLUT_KEY_LEFT:
         {
-            Vector3f cross = (cameraFront_.Cross(cameraUp_)).Normalize();
+            Vector3f cross = (cameraFront_.Cross(Vector3f(0.0f, 1.0f, 0.0f))).Normalize();
             Vector3f dpos = (cross * cameraSpeed_);
-            dpos.y = 0;
             cameraPos_ -= dpos;
             playerWidget_->Position() -= dpos;
 
@@ -206,7 +205,7 @@ namespace gl_scene
         break;
         case GLUT_KEY_RIGHT:
         {
-            Vector3f cross = (cameraFront_.Cross(cameraUp_)).Normalize();
+            Vector3f cross = (cameraFront_.Cross(Vector3f(0.0f, 1.0f, 0.0f))).Normalize();
             Vector3f dpos = (cross * cameraSpeed_);
             cameraPos_ += dpos;
             playerWidget_->Position() += dpos;
