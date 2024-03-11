@@ -16,11 +16,14 @@ namespace gl_scene
         {
             GLuint VAO;
             GLuint VertexVBO;
+            GLuint NormalVBO;
             GLuint ColorVBO;
             GLuint IBO;
 
+            std::cout << "in factory" << std::endl;
             glGenVertexArrays(1, &VAO);
             glBindVertexArray(VAO);
+            std::cout << "in factory1" << std::endl;
 
             Vector3f vectors[8];
             vectors[0] = Vector3f(-0.5f, -0.5f, -0.5f);
@@ -39,27 +42,40 @@ namespace gl_scene
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-            float r = std::generate_canonical<float, 128>(rng);
-            float g = std::generate_canonical<float, 128>(rng);
-            float b = std::generate_canonical<float, 128>(rng);
+            Vector3f normals[8];
+            normals[0] = Vector3f(-1.0f, -1.0f, -1.0f) * (1.0f / sqrt(3));
+            normals[1] = Vector3f(+1.0f, -1.0f, -1.0f) * (1.0f / sqrt(3));
+            normals[2] = Vector3f(+1.0f, -1.0f, +1.0f) * (1.0f / sqrt(3));
+            normals[3] = Vector3f(-1.0f, -1.0f, +1.0f) * (1.0f / sqrt(3));
+            normals[4] = Vector3f(-1.0f, +1.0f, -1.0f) * (1.0f / sqrt(3));
+            normals[5] = Vector3f(+1.0f, +1.0f, -1.0f) * (1.0f / sqrt(3));
+            normals[6] = Vector3f(+1.0f, +1.0f, +1.0f) * (1.0f / sqrt(3));
+            normals[7] = Vector3f(-1.0f, +1.0f, +1.0f) * (1.0f / sqrt(3));
 
-            Vector3f color = Vector3f(r, g, b);
+            glGenBuffers(1, &NormalVBO);
+            glBindBuffer(GL_ARRAY_BUFFER, NormalVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            Vector3f color = Vector3f(1.0f, 1.0f, 1.0f);
             Vector3f colors[8];
-            colors[0] = Vector3f(color);
-            colors[1] = Vector3f(color);
-            colors[2] = Vector3f(color);
-            colors[3] = Vector3f(color);
-            colors[4] = Vector3f(color);
-            colors[5] = Vector3f(color);
-            colors[6] = Vector3f(color);
-            colors[7] = Vector3f(color);
+            colors[0] = color;
+            colors[1] = color;
+            colors[2] = color;
+            colors[3] = color;
+            colors[4] = color;
+            colors[5] = color;
+            colors[6] = color;
+            colors[7] = color;
 
             glGenBuffers(1, &ColorVBO);
             glBindBuffer(GL_ARRAY_BUFFER, ColorVBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
             int Indices[36] = {
                 0, 1, 2,
@@ -82,11 +98,13 @@ namespace gl_scene
             glBindVertexArray(0);
             glDisableVertexAttribArray(0);
             glDisableVertexAttribArray(1);
+            glDisableVertexAttribArray(2);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            Material *material = new Material();
-            return new Widget(std::to_string(id_++), 12, VAO, {ColorVBO, IBO}, material, widgetType);
+            Material *material = new Material(Vector3f(1.0, 0.0, 0.0), Vector3f(1.0, 0.0, 0.0), Vector3f(1.0, 0.0, 0.0), 2.f);
+            std::cout << "out factory" << std::endl;
+            return new Widget(std::to_string(id_++), 12, VAO, {NormalVBO, ColorVBO, IBO}, material, widgetType);
         }
         break;
         case CUBETEXTURED:
@@ -350,9 +368,9 @@ namespace gl_scene
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            float r = std::generate_canonical<float, 128>(rng);
-            float g = std::generate_canonical<float, 128>(rng);
-            float b = std::generate_canonical<float, 128>(rng);
+            float r = 1.0f; // std::generate_canonical<float, 128>(rng);
+            float g = 1.0f; // std::generate_canonical<float, 128>(rng);
+            float b = 1.0f; // std::generate_canonical<float, 128>(rng);
 
             Material *material = new Material(Vector3f(r, g, b), Vector3f(r, g, b));
             return new Widget(std::to_string(id_++), 12, VAO, {TexVBO, NormalVBO, IBO}, material, widgetType);

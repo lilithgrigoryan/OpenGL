@@ -34,14 +34,15 @@ namespace gl_scene
         return CameraMat;
     }
 
-    Widget *Scene::addWidget(WidgetType widgetType, Vector3f position, Vector3f rotationAxis, float rotationAngle)
+    Widget *Scene::addWidget(WidgetType widgetType, Vector3f position, Vector3f rotationAxis, float rotationAngle, bool insertToWidgets)
     {
         Widget *w = widgetFactory_.CreateWidget(widgetType);
         w->Position() = position;
         w->RotationAxis() = rotationAxis;
         w->RotationAngle() = rotationAngle;
 
-        widgets_.insert(w);
+        if (insertToWidgets)
+            widgets_.insert(w);
 
         return w;
     }
@@ -71,7 +72,21 @@ namespace gl_scene
     void Scene::setPhongShader(PhongShaderProgram *shaderHadle)
     {
         phongShaderProgram_ = shaderHadle;
+    }
+
+    void Scene::enablePhongShader()
+    {
         phongShaderProgram_->Enable();
+    }
+
+    void Scene::setColorShader(ColorShaderProgram *shaderHadle)
+    {
+        colorShaderProgram_ = shaderHadle;
+    }
+
+    void Scene::enableColorShader()
+    {
+        colorShaderProgram_->Enable();
     }
 
     void Scene::setDirectionalLight(DirectionalLight *DirectionalLight)
@@ -81,17 +96,20 @@ namespace gl_scene
 
     void Scene::drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
     {
-        w->Rotate();
-
-        Matrix4f matrix = ProjectionMat * CameraViewMat * w->TransformationMat();
-        glUniformMatrix4fv(transformationMatrix_, 1, GL_TRUE, &matrix.mat_[0][0]);
+        Matrix4f localToWorld = w->TransformationMat();
+        Matrix4f matrix = ProjectionMat * CameraViewMat * localToWorld;
+        colorShaderProgram_->SetMaterial(*w->getMaterial());
+        colorShaderProgram_->SetTransformationMatrix(matrix);
+        colorShaderProgram_->SetDirectionalLight(light, localToWorld);
+        colorShaderProgram_->SetCamera(cameraPos_, localToWorld);
         glBindVertexArray(w->VAO());
+
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
     }
 
     void Scene::drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat)
     {
-        glUniform1i(SamplerLocation, 0);
+        // glUniform1i(SamplerLocation, 0);
 
         texture->Bind(GL_TEXTURE0);
 
@@ -114,14 +132,15 @@ namespace gl_scene
         Matrix4f CameraViewMat = this->CameraMat();
         Matrix4f ProjectionMat = this->ProjectionMat();
 
+        enablePhongShader();
         for (Widget *w : visibleWidgets_)
         {
-            if (w->isVisible())
-            {
-                Texture *texture = textures_[stol(w->id()) % textures_.size()];
-                drawWidget(w, texture, ProjectionMat, CameraViewMat);
-            }
+            Texture *texture = textures_[stol(w->id()) % textures_.size()];
+            drawWidget(w, texture, ProjectionMat, CameraViewMat);
         }
+
+        enableColorShader();
+        drawWidget(playerWidget_, ProjectionMat, CameraViewMat);
     }
 
     void Scene::addTexture(std::string &filename)
@@ -131,26 +150,68 @@ namespace gl_scene
         textures_.push_back(text);
     }
 
+    void Scene::addWidgets(float startx, float endx, float startz, float endz, int count)
+    {
+        float stepx = std::abs(startx - endx) / (float)count;
+        float stepz = std::abs(startz - endz) / (float)count;
+        float stx = std::min(startx, endx);
+        float stz = std::min(startz, endz);
+
+        for (int ix = 0; ix < count; ix++)
+        {
+            for (int iy = 0; iy < count; iy++)
+            {
+                Vector3f widgetPos(stx + ix * stepx, 0.0f, stz + iy * stepz);
+                std::cout << widgetPos;
+                Widget *w = addWidget(CUBEWITHNORMALS, widgetPos, Vector3f(0.0f, 1.0f, 0.0f), 0.0f, true);
+                showWidget(w);
+            }
+        }
+    }
+
     void Scene::OnKeyboard(unsigned char key)
     {
         switch (key)
         {
         case GLUT_KEY_UP:
-            cameraPos_ += (cameraFront_ * cameraSpeed_);
-            break;
+        {
+            Vector3f dpos = (cameraUp_ * cameraSpeed_);
+            dpos.y = 0;
+            cameraPos_ += dpos;
+            playerWidget_->Position() += dpos;
+
+            std::cout << playerWidget_->Position();
+        }
+        break;
         case GLUT_KEY_DOWN:
-            cameraPos_ -= (cameraFront_ * cameraSpeed_);
-            break;
+        {
+            Vector3f dpos = (cameraUp_ * cameraSpeed_);
+            dpos.y = 0;
+            cameraPos_ -= dpos;
+            playerWidget_->Position() -= dpos;
+
+            std::cout << playerWidget_->Position();
+        }
+        break;
         case GLUT_KEY_LEFT:
         {
             Vector3f cross = (cameraFront_.Cross(cameraUp_)).Normalize();
-            cameraPos_ -= (cross * cameraSpeed_);
+            Vector3f dpos = (cross * cameraSpeed_);
+            dpos.y = 0;
+            cameraPos_ -= dpos;
+            playerWidget_->Position() -= dpos;
+
+            std::cout << playerWidget_->Position();
         }
         break;
         case GLUT_KEY_RIGHT:
         {
             Vector3f cross = (cameraFront_.Cross(cameraUp_)).Normalize();
-            cameraPos_ += (cross * cameraSpeed_);
+            Vector3f dpos = (cross * cameraSpeed_);
+            cameraPos_ += dpos;
+            playerWidget_->Position() += dpos;
+
+            std::cout << playerWidget_->Position();
         }
         break;
         default:
@@ -158,21 +219,33 @@ namespace gl_scene
         }
     }
 
-    void Scene::KeyboardCB(unsigned char key, int mouse_x, int mouse_y)
+    void Scene::OnMouseWheel(int button, int dir, int x, int y)
+    {
+        if (dir > 0)
+            cameraPos_ += (cameraFront_ * cameraZoomSpeed_);
+        else
+            cameraPos_ -= (cameraFront_ * cameraZoomSpeed_);
+    }
+
+    void Scene::OnKeyboardSpecial(unsigned char key, int mouse_x, int mouse_y)
     {
         switch (key)
         {
         case 'q':
         case 27: // escape key code
-            exit(0);
-            break;
+        {
+            glutLeaveMainLoop();
+        }
+        break;
         case '+':
         {
             float z = near_ + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (far_ - near_)));
             float rangeXY = z * tanh(fov_ / 2);
             float x = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY * ((float)windowWidth_ / windowHeight_);
             float y = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY;
-            Widget *w = addWidget(CUBEWITHNORMALS, cameraPos_ + cameraFront_ * z + cameraUp_ * y + cameraFront_.Cross(cameraUp_) * x, Vector3f(0., 1, 0.), 0.0);
+            Vector3f widgetPos = cameraPos_ + cameraFront_ * z + cameraUp_ * y + cameraFront_.Cross(cameraUp_) * x;
+
+            Widget *w = addWidget(CUBEWITHNORMALS, widgetPos, Vector3f(0., 1, 0.), 0.0, true);
             showWidget(w);
         }
         break;

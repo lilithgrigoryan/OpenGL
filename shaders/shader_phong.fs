@@ -1,6 +1,6 @@
 #version 330
 
-in vec3 TexCoord0;
+in vec2 TexCoord0;
 in vec3 Normal0;
 in vec3 LocalPos0;
 

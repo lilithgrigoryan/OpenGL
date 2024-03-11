@@ -12,6 +12,7 @@
 #include "WidgetFactory.hpp"
 #include "Texture.hpp"
 #include "PhongShaderProgram.hpp"
+#include "ColorShaderProgram.hpp"
 
 namespace gl_scene
 {
@@ -28,8 +29,10 @@ namespace gl_scene
         Vector3f cameraFront_;
         Vector3f cameraUp_;
         float cameraSpeed_;
+        float cameraZoomSpeed_;
 
         WidgetFactory widgetFactory_;
+        Widget *playerWidget_ = NULL;
         std::set<Widget *> widgets_;
         std::set<Widget *> visibleWidgets_;
 
@@ -39,13 +42,14 @@ namespace gl_scene
         GLuint SamplerLocation;
 
         PhongShaderProgram *phongShaderProgram_;
+        ColorShaderProgram *colorShaderProgram_;
         DirectionalLight *light;
 
         void drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
         void drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
 
     public:
-        Scene(){};
+        // Scene() { playerWidget_ = NULL; };
         Scene(int windowWidth,
               int windowHeight,
               float fov,
@@ -63,6 +67,9 @@ namespace gl_scene
                                                                 cameraUp_(cameraUp)
         {
             cameraSpeed_ = 1.0f;
+            cameraZoomSpeed_ = 0.5f;
+            playerWidget_ = addWidget(CUBECOLORED, Vector3f(0.0, 0.0, 0.0), Vector3f(0.0, 1.0, 0.0), 0.0, false);
+            playerWidget_->Scale() = 0.25f;
         };
 
         friend std::ostream &operator<<(std::ostream &stream, const Scene &s)
@@ -80,12 +87,18 @@ namespace gl_scene
         const float &near() const { return near_; }
 
         void OnKeyboard(unsigned char key);
-        void KeyboardCB(unsigned char key, int mouse_x, int mouse_y);
+        void OnKeyboardSpecial(unsigned char key, int mouse_x, int mouse_y);
+        void OnMouseWheel(int button, int dir, int x, int y);
 
         void setPhongShader(PhongShaderProgram *shaderHadle);
+        void enablePhongShader();
+        void setColorShader(ColorShaderProgram *shaderHadle);
+        void enableColorShader();
         void setDirectionalLight(DirectionalLight *light);
         void addTexture(std::string &filename);
         Texture *Textures(int index) { return textures_[index]; }
+
+        void addWidgets(float startx, float endx, float startz, float endz, int count);
 
         void draw();
 
@@ -94,10 +107,12 @@ namespace gl_scene
             std::cout << "Cleaning up" << std::endl;
             for (auto w : widgets_)
                 delete w;
+
+            delete playerWidget_;
         }
 
     private:
-        Widget *addWidget(WidgetType widgetType, Vector3f position, Vector3f rotationAxis, float rotationAngle);
+        Widget *addWidget(WidgetType widgetType, Vector3f position, Vector3f rotationAxis, float rotationAngle, bool insertToWidgets);
         void removeWidget(Widget *w);
         void showWidget(Widget *w);
         void hideWidget(Widget *w);

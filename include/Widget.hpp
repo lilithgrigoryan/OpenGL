@@ -48,7 +48,7 @@ namespace gl_scene
                                         type_(WidgetType),
                                         Material_(Material)
         {
-            Scale_ = 1.0f;
+            Scale_ = 0.5f;
             Position_ = Vector3f(0.0f, 0.0f, 0.0f);
             RotationAxis_ = Vector3f(0.0f, 1.0f, 0.0f),
             RotationSpeed_ = 0.02f;
@@ -61,6 +61,8 @@ namespace gl_scene
         const GLuint &VAO() const { return VAO_; }
         std::vector<GLuint> &BufferObjects() { return BufferObjects_; }
         const int &TrianglesNumber() const { return triangleNumber_; }
+
+        const WidgetType &GetWidgetType() const { return type_; }
 
         float &Scale() { return Scale_; }
         const float &Scale() const { return Scale_; }
