@@ -96,10 +96,9 @@ namespace gl_scene
             cameraZoomSpeed_ = 0.5f;
             playerWidget_ = addWidget(CUBECOLORED, Vector3f(0.0, 0.0, 0.0), Vector3f(0.0, 1.0, 0.0), 0.0, false);
             playerWidget_->Scale() = 0.25f;
+            
             theta_ = std::max(theta_, minTheta_);
             theta_ = std::min(theta_, maxTheta_);
-
-            std::cout << "Initial theta, min theta: " << theta_ << " " << minTheta_ << std::endl;
             camera = CalculateCameraUVN();
         };
 

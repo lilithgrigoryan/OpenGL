@@ -272,7 +272,7 @@ namespace gl_scene
             if (cameradx != 0)
                 phi_ += cameradx;
 
-            if (camerady != 0 && std::abs(theta_ - camerady) < maxTheta_ && std::abs(theta_ - camerady) > minTheta_)
+            if (camerady != 0 && theta_ - camerady < maxTheta_ && theta_ - camerady > minTheta_)
                 theta_ -= camerady;
 
             camera = CalculateCameraUVN();

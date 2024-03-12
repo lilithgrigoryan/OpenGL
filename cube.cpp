@@ -83,12 +83,6 @@ int main(int argc, char **argv)
     glDepthFunc(GL_LESS);
 
     float fov = 45.0 / 180.0 * M_PI;
-    Vector3f cameraPos(5.0f, 5.0f, 0.0f);
-    Vector3f cameraFront(-1 / sqrt(2), -1 / sqrt(2), 0);
-    Vector3f cameraUp(-1 / sqrt(2), 1 / sqrt(2), 0);
-    // Vector3f cameraPos(0.0f, 5.0f, 0.0f);
-    // Vector3f cameraFront(0.0f, -1.0f, 0.0f);
-    // Vector3f cameraUp(0.0f, 0.0f, 1.0f);
     scene = new Scene(WINDOW_WIDTH, WINDOW_HEIGHT, 45.0 / 180.0 * M_PI, 0.1, 200, 5, 0.0, 0.0);
 
     PhongShaderProgram *shaderHandlerPhong = new PhongShaderProgram("shaders/shader_phong.vs", "shaders/shader_phong.fs");
