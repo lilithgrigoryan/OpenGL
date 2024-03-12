@@ -26,15 +26,35 @@ namespace gl_scene
         return Projection;
     }
 
+    CameraUVN Scene::CalculateCameraUVN()
+    {
+        float sint = sinf(theta_ * M_PI / 180.f);
+        float cost = cosf(theta_ * M_PI / 180.f);
+        float sinp = sinf(phi_ * M_PI / 180.f);
+        float cosp = cosf(phi_ * M_PI / 180.f);
+
+        CameraUVN camerauvn;
+        float y = cameraDistance_ * cost;
+        float x = cameraDistance_ * sint * cosp;
+        float z = cameraDistance_ * sint * sinp;
+        camerauvn.position_ = playerWidget_->Position() + Vector3f(x, y, z);
+
+        camerauvn.front_ = Vector3f(-sint * cosp, -cost, -sint * sinp).Normalize();
+        camerauvn.up_ = Vector3f(-cost * cosp, sint, -cost * sinp).Normalize();
+        camerauvn.left_ = Vector3f(sinp, 0, -cosp).Normalize();
+
+        return camerauvn;
+    }
+
     Matrix4f Scene::CameraMat()
     {
-        Vector3f N = cameraFront_.Normalize();
-        Vector3f V = cameraUp_.Normalize();
-        Vector3f U = (N.Cross(V)).Normalize();
+        Vector3f N = camera.front_;
+        Vector3f V = camera.up_;
+        Vector3f U = camera.left_;
 
-        Matrix4f CameraMat(U.x, U.y, U.z, -U.Dot(cameraPos_),
-                           V.x, V.y, V.z, -V.Dot(cameraPos_),
-                           -N.x, -N.y, -N.z, N.Dot(cameraPos_),
+        Matrix4f CameraMat(U.x, U.y, U.z, -U.Dot(camera.position_),
+                           V.x, V.y, V.z, -V.Dot(camera.position_),
+                           -N.x, -N.y, -N.z, N.Dot(camera.position_),
                            0.0f, 0.0f, 0.0f, 1.0f);
 
         return CameraMat;
@@ -107,7 +127,7 @@ namespace gl_scene
         colorShaderProgram_->SetMaterial(*w->getMaterial());
         colorShaderProgram_->SetTransformationMatrix(matrix);
         colorShaderProgram_->SetDirectionalLight(light, localToWorld);
-        colorShaderProgram_->SetCamera(cameraPos_, localToWorld);
+        colorShaderProgram_->SetCamera(camera.position_, localToWorld);
         glBindVertexArray(w->VAO());
 
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
@@ -127,7 +147,7 @@ namespace gl_scene
         phongShaderProgram_->SetTransformationMatrix(matrix);
         phongShaderProgram_->SetTextureUnit(0);
         phongShaderProgram_->SetDirectionalLight(light, localToWorld);
-        phongShaderProgram_->SetCamera(cameraPos_, localToWorld);
+        phongShaderProgram_->SetCamera(camera.position_, localToWorld);
         glBindVertexArray(w->VAO());
 
         glDrawElements(GL_TRIANGLES, 3 * w->TrianglesNumber(), GL_UNSIGNED_INT, 0);
@@ -181,33 +201,31 @@ namespace gl_scene
         case GLUT_KEY_UP:
         {
             Vector3f ey = Vector3f(0.0f, 1.0f, 0.0f);
-            Vector3f dpos = ey.Cross(cameraFront_.Cross(ey)) * cameraSpeed_;
-            cameraPos_ += dpos;
+            Vector3f dpos = ey.Cross(camera.left_) * cameraSpeed_;
             playerWidget_->Position() += dpos;
+            camera = CalculateCameraUVN();
         }
         break;
         case GLUT_KEY_DOWN:
         {
             Vector3f ey = Vector3f(0.0f, 1.0f, 0.0f);
-            Vector3f dpos = ey.Cross(cameraFront_.Cross(ey)) * cameraSpeed_;
-            cameraPos_ -= dpos;
+            Vector3f dpos = ey.Cross(camera.left_) * cameraSpeed_;
             playerWidget_->Position() -= dpos;
+            camera = CalculateCameraUVN();
         }
         break;
         case GLUT_KEY_LEFT:
         {
-            Vector3f cross = (cameraFront_.Cross(Vector3f(0.0f, 1.0f, 0.0f))).Normalize();
-            Vector3f dpos = (cross * cameraSpeed_);
-            cameraPos_ -= dpos;
+            Vector3f dpos = (camera.left_ * cameraSpeed_);
             playerWidget_->Position() -= dpos;
+            camera = CalculateCameraUVN();
         }
         break;
         case GLUT_KEY_RIGHT:
         {
-            Vector3f cross = (cameraFront_.Cross(Vector3f(0.0f, 1.0f, 0.0f))).Normalize();
-            Vector3f dpos = (cross * cameraSpeed_);
-            cameraPos_ += dpos;
+            Vector3f dpos = (camera.left_ * cameraSpeed_);
             playerWidget_->Position() += dpos;
+            camera = CalculateCameraUVN();
         }
         break;
         default:
@@ -218,9 +236,11 @@ namespace gl_scene
     void Scene::OnMouseWheel(int button, int dir, int x, int y)
     {
         if (dir > 0)
-            cameraPos_ += (cameraFront_ * cameraZoomSpeed_);
+            cameraDistance_ += cameraZoomSpeed_;
         else
-            cameraPos_ -= (cameraFront_ * cameraZoomSpeed_);
+            cameraDistance_ = std::max(0.f, cameraDistance_ - cameraZoomSpeed_);
+
+        camera = CalculateCameraUVN();
     }
 
     void Scene::OnMouse(int button, int state, int x, int y)
@@ -250,26 +270,12 @@ namespace gl_scene
             cameraPrevPosY = y;
 
             if (cameradx != 0)
-            {
-                Matrix4f R = rotation(Vector3f(0.0f, 1.0f, 0.0f), -cameradx * 0.01);
-                Matrix3f R3 = Matrix3f(R);
-                
-                cameraPos_ = playerWidget_->Position() + R3 * (cameraPos_ - playerWidget_->Position());
-                cameraUp_ = R3 * cameraUp_;
-                cameraFront_ = R3 * cameraFront_;
-            }
+                phi_ += cameradx;
 
-            if (camerady != 0)
-            {
-                Vector3f ey = Vector3f(0.0f, 1.0f, 0.0f);
-                Vector3f n = cameraFront_.Cross(ey);
-                Matrix4f R = rotation(n, -camerady * 0.01);
-                Matrix3f R3 = Matrix3f(R);
+            if (camerady != 0 && std::abs(theta_ - camerady) < maxTheta_ && std::abs(theta_ - camerady) > minTheta_)
+                theta_ -= camerady;
 
-                cameraPos_ = playerWidget_->Position() + R3 * (cameraPos_ - playerWidget_->Position());
-                cameraUp_ = R3 * cameraUp_;
-                cameraFront_ = R3 * cameraFront_;
-            }
+            camera = CalculateCameraUVN();
         }
     }
 
@@ -289,7 +295,7 @@ namespace gl_scene
             float rangeXY = z * tanh(fov_ / 2);
             float x = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY * ((float)windowWidth_ / windowHeight_);
             float y = (-1 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX / 2))) * rangeXY;
-            Vector3f widgetPos = cameraPos_ + cameraFront_ * z + cameraUp_ * y + cameraFront_.Cross(cameraUp_) * x;
+            Vector3f widgetPos = camera.position_ + camera.front_ * z + camera.up_ * y + camera.left_ * x;
 
             Widget *w = addWidget(CUBEWITHNORMALS, widgetPos, Vector3f(0., 1, 0.), 0.0, true);
             showWidget(w);

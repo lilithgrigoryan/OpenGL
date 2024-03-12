@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     if (res != GLEW_OK)
         fprintf(stderr, "Failed to initialize glew");
 
-    GLclampf r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
+    GLclampf r = 0.0f, g = 0.0f, b = 0.0f, a = 0.0f;
     glClearColor(r, g, b, a);
 
     glEnable(GL_CULL_FACE);
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     // Vector3f cameraPos(0.0f, 5.0f, 0.0f);
     // Vector3f cameraFront(0.0f, -1.0f, 0.0f);
     // Vector3f cameraUp(0.0f, 0.0f, 1.0f);
-    scene = new Scene(WINDOW_WIDTH, WINDOW_HEIGHT, 45.0 / 180.0 * M_PI, 0.1, 200, cameraPos, cameraFront, cameraUp);
+    scene = new Scene(WINDOW_WIDTH, WINDOW_HEIGHT, 45.0 / 180.0 * M_PI, 0.1, 200, 5, 0.0, 0.0);
 
     PhongShaderProgram *shaderHandlerPhong = new PhongShaderProgram("shaders/shader_phong.vs", "shaders/shader_phong.fs");
     scene->setPhongShader(shaderHandlerPhong);

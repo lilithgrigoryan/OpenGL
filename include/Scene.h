@@ -16,6 +16,24 @@
 
 namespace gl_scene
 {
+    typedef struct CameraUVN
+    {
+        Vector3f front_;
+        Vector3f up_;
+        Vector3f left_;
+        Vector3f position_;
+
+        friend std::ostream &operator<<(std::ostream &stream, const CameraUVN &c)
+        {
+            std::cout << "Camera position: " << c.position_;
+            std::cout << "Camera front: " << c.front_;
+            std::cout << "Camera up: " << c.up_;
+            std::cout << "Camera left: " << c.left_;
+
+            return stream;
+        }
+    } CameraUVN;
+
     struct Scene
     {
     private:
@@ -25,11 +43,14 @@ namespace gl_scene
         float near_;
         float far_;
 
-        Vector3f cameraPos_;
-        Vector3f cameraFront_;
-        Vector3f cameraUp_;
+        float cameraDistance_;
+        float theta_;
+        float phi_;
         float cameraSpeed_;
         float cameraZoomSpeed_;
+        float maxTheta_ = 67.5f;
+        float minTheta_ = 22.5f;
+        CameraUVN camera;
 
         WidgetFactory widgetFactory_;
         Widget *playerWidget_ = NULL;
@@ -60,21 +81,26 @@ namespace gl_scene
               float fov,
               float near,
               float far,
-              Vector3f cameraPos = Vector3f(0.0f, 0.0f, 0.0f),
-              Vector3f cameraFront = Vector3f(0.0f, 0.0f, -1.0f),
-              Vector3f cameraUp = Vector3f(0.0f, 1.0f, 0.0f)) : windowWidth_{windowWidth},
-                                                                windowHeight_(windowHeight),
-                                                                fov_(fov),
-                                                                near_(near),
-                                                                far_(far),
-                                                                cameraPos_(cameraPos),
-                                                                cameraFront_(cameraFront),
-                                                                cameraUp_(cameraUp)
+              float cameraDistance_ = 5.0f,
+              float theta = 0.0f,
+              float phi = 0.0f) : windowWidth_{windowWidth},
+                                  windowHeight_(windowHeight),
+                                  fov_(fov),
+                                  near_(near),
+                                  far_(far),
+                                  cameraDistance_(cameraDistance_),
+                                  theta_(theta),
+                                  phi_(phi)
         {
             cameraSpeed_ = 1.0f;
             cameraZoomSpeed_ = 0.5f;
             playerWidget_ = addWidget(CUBECOLORED, Vector3f(0.0, 0.0, 0.0), Vector3f(0.0, 1.0, 0.0), 0.0, false);
             playerWidget_->Scale() = 0.25f;
+            theta_ = std::max(theta_, minTheta_);
+            theta_ = std::min(theta_, maxTheta_);
+
+            std::cout << "Initial theta, min theta: " << theta_ << " " << minTheta_ << std::endl;
+            camera = CalculateCameraUVN();
         };
 
         friend std::ostream &operator<<(std::ostream &stream, const Scene &s)
@@ -104,6 +130,8 @@ namespace gl_scene
         void setDirectionalLight(DirectionalLight *light);
         void addTexture(std::string &filename);
         Texture *Textures(int index) { return textures_[index]; }
+
+        CameraUVN CalculateCameraUVN();
 
         void addWidgets(float startx, float endx, float startz, float endz, int count);
 
