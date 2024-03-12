@@ -23,6 +23,21 @@ namespace gl_scene
         mat_[2][2] = a33;
     }
 
+    Matrix3f::Matrix3f(Matrix4f m4)
+    {
+        mat_[0][0] = m4[0][0];
+        mat_[0][1] = m4[0][1];
+        mat_[0][2] = m4[0][2];
+
+        mat_[1][0] = m4[1][0];
+        mat_[1][1] = m4[1][1];
+        mat_[1][2] = m4[1][2];
+
+        mat_[2][0] = m4[2][0];
+        mat_[2][1] = m4[2][1];
+        mat_[2][2] = m4[2][2];
+    }
+
     void Matrix3f::setZero()
     {
         mat_[0][0] = 0.0;

@@ -37,6 +37,16 @@ void onMouseWheel(int button, int dir, int x, int y)
     scene->OnMouseWheel(button, dir, x, y);
 }
 
+void onMouse(int button, int state, int x, int y)
+{
+    scene->OnMouse(button, state, x, y);
+}
+
+void onMouseActiveMove(int x, int y)
+{
+    scene->OnMouseActiveMove(x, y);
+}
+
 void RenderDisplayCB()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -74,8 +84,8 @@ int main(int argc, char **argv)
 
     float fov = 45.0 / 180.0 * M_PI;
     Vector3f cameraPos(5.0f, 5.0f, 0.0f);
-    Vector3f cameraFront(-1/sqrt(2), -1/sqrt(2), 0);
-    Vector3f cameraUp(-1/sqrt(2), 1/sqrt(2), 0);
+    Vector3f cameraFront(-1 / sqrt(2), -1 / sqrt(2), 0);
+    Vector3f cameraUp(-1 / sqrt(2), 1 / sqrt(2), 0);
     // Vector3f cameraPos(0.0f, 5.0f, 0.0f);
     // Vector3f cameraFront(0.0f, -1.0f, 0.0f);
     // Vector3f cameraUp(0.0f, 0.0f, 1.0f);
@@ -103,6 +113,8 @@ int main(int argc, char **argv)
     glutSpecialFunc(OnKeyboard);
     glutKeyboardFunc(OnKeyboardSpecial);
     glutMouseWheelFunc(onMouseWheel);
+    glutMouseFunc(onMouse);
+    glutMotionFunc(onMouseActiveMove);
     glutMainLoop();
 
     delete scene;

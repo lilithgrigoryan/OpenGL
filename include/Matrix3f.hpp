@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "../include/Vector3f.h"
+#include "../include/Matrix4f.h"
 
 namespace gl_scene
 {
@@ -14,6 +15,7 @@ namespace gl_scene
         Matrix3f(float a11, float a12, float a13,
                  float a21, float a22, float a23,
                  float a31, float a32, float a33);
+        Matrix3f(Matrix4f m4);
 
         void setZero();
         void setIdentity();

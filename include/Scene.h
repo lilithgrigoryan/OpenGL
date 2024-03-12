@@ -48,6 +48,11 @@ namespace gl_scene
         void drawWidget(Widget *w, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
         void drawWidget(Widget *w, Texture *texture, Matrix4f &ProjectionMat, Matrix4f &CameraViewMat);
 
+        static int cameraPrevPosX;
+        static int cameraPrevPosY;
+        static int cameradx;
+        static int camerady;
+
     public:
         // Scene() { playerWidget_ = NULL; };
         Scene(int windowWidth,
@@ -89,6 +94,8 @@ namespace gl_scene
         void OnKeyboard(unsigned char key);
         void OnKeyboardSpecial(unsigned char key, int mouse_x, int mouse_y);
         void OnMouseWheel(int button, int dir, int x, int y);
+        void OnMouse(int button, int state, int x, int y);
+        void OnMouseActiveMove(int x, int y);
 
         void setPhongShader(PhongShaderProgram *shaderHadle);
         void enablePhongShader();

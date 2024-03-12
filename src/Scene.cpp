@@ -2,9 +2,15 @@
 #include <algorithm>
 #include "../include/Scene.h"
 #include "../include/glmath.h"
+#include "../include/Matrix3f.hpp"
 
 namespace gl_scene
 {
+    int Scene::cameraPrevPosX = -1;
+    int Scene::cameraPrevPosY = -1;
+    int Scene::cameradx = -1;
+    int Scene::camerady = -1;
+
     Matrix4f Scene::ProjectionMat()
     {
         float r = (float)windowWidth_ / windowHeight_;
@@ -162,7 +168,6 @@ namespace gl_scene
             for (int iy = 0; iy < count; iy++)
             {
                 Vector3f widgetPos(stx + ix * stepx, 0.0f, stz + iy * stepz);
-                std::cout << widgetPos;
                 Widget *w = addWidget(CUBEWITHNORMALS, widgetPos, Vector3f(0.0f, 1.0f, 0.0f), 0.0f, true);
                 showWidget(w);
             }
@@ -179,8 +184,6 @@ namespace gl_scene
             Vector3f dpos = ey.Cross(cameraFront_.Cross(ey)) * cameraSpeed_;
             cameraPos_ += dpos;
             playerWidget_->Position() += dpos;
-
-            std::cout << playerWidget_->Position();
         }
         break;
         case GLUT_KEY_DOWN:
@@ -189,8 +192,6 @@ namespace gl_scene
             Vector3f dpos = ey.Cross(cameraFront_.Cross(ey)) * cameraSpeed_;
             cameraPos_ -= dpos;
             playerWidget_->Position() -= dpos;
-
-            std::cout << playerWidget_->Position();
         }
         break;
         case GLUT_KEY_LEFT:
@@ -199,8 +200,6 @@ namespace gl_scene
             Vector3f dpos = (cross * cameraSpeed_);
             cameraPos_ -= dpos;
             playerWidget_->Position() -= dpos;
-
-            std::cout << playerWidget_->Position();
         }
         break;
         case GLUT_KEY_RIGHT:
@@ -209,8 +208,6 @@ namespace gl_scene
             Vector3f dpos = (cross * cameraSpeed_);
             cameraPos_ += dpos;
             playerWidget_->Position() += dpos;
-
-            std::cout << playerWidget_->Position();
         }
         break;
         default:
@@ -224,6 +221,56 @@ namespace gl_scene
             cameraPos_ += (cameraFront_ * cameraZoomSpeed_);
         else
             cameraPos_ -= (cameraFront_ * cameraZoomSpeed_);
+    }
+
+    void Scene::OnMouse(int button, int state, int x, int y)
+    {
+        if (button == GLUT_LEFT_BUTTON)
+        {
+            if (state == GLUT_DOWN)
+            {
+                cameraPrevPosX = x;
+                cameraPrevPosY = y;
+            }
+            else
+            {
+                cameraPrevPosX = -1;
+                cameraPrevPosY = -1;
+            }
+        }
+    }
+
+    void Scene::OnMouseActiveMove(int x, int y)
+    {
+        if (cameraPrevPosX != -1 && cameraPrevPosY != -1)
+        {
+            cameradx = x - cameraPrevPosX;
+            camerady = y - cameraPrevPosY;
+            cameraPrevPosX = x;
+            cameraPrevPosY = y;
+
+            if (cameradx != 0)
+            {
+                Matrix4f R = rotation(Vector3f(0.0f, 1.0f, 0.0f), -cameradx * 0.01);
+                Matrix3f R3 = Matrix3f(R);
+                
+                cameraPos_ = playerWidget_->Position() + R3 * (cameraPos_ - playerWidget_->Position());
+                cameraUp_ = R3 * cameraUp_;
+                cameraFront_ = R3 * cameraFront_;
+            }
+
+            if (camerady != 0)
+            {
+                Vector3f ey = Vector3f(0.0f, 1.0f, 0.0f);
+                Vector3f n = cameraFront_.Cross(ey);
+                Matrix4f R = rotation(n, -camerady * 0.01);
+                Matrix3f R3 = Matrix3f(R);
+
+                cameraPos_ = playerWidget_->Position() + R3 * (cameraPos_ - playerWidget_->Position());
+                cameraUp_ = R3 * cameraUp_;
+                cameraFront_ = R3 * cameraFront_;
+            }
+        }
     }
 
     void Scene::OnKeyboardSpecial(unsigned char key, int mouse_x, int mouse_y)
